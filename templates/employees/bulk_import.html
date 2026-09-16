@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Onboard employees from CSV{% endblock %}
+{% block crumb %}<a href="{% url 'employees:list' %}">Employees</a> / <b>Onboard from CSV</b>{% endblock %}
+{% block content %}
+
+<a class="back-link" href="{% url 'employees:list' %}">&larr; Employees</a>
+<div class="page-head">
+  <h1>Onboard new employees from a spreadsheet</h1>
+  <p class="sub">Required: <code>staff_id</code>, <code>full_legal_name</code>, <code>position</code>,
+  <code>business_unit</code> (code or name), <code>date_joined</code>, and a payment method
+  (<code>bank_account_number</code> or <code>mobile_money_number</code>). Optional: email, TIN, NSSF no.,
+  engagement_type, salary, allowance. Every row is validated the same way the on-screen form is;
+  nothing is created until you confirm.</p>
+</div>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data" class="toolbar">
+    {% csrf_token %}
+    <input type="file" name="file" accept=".csv,text/csv" required>
+    <button class="btn" type="submit">Preview</button>
+    <a class="btn subtle sm" href="?template=1" style="margin-left:auto">Download template CSV</a>
+  </form>
+</div>
+
+{% if plan %}
+  {% if plan.header_error %}
+    <div class="banner error">{{ plan.header_error }}</div>
+  {% else %}
+    <div class="grid c3" style="margin:16px 0;">
+      <div class="stat"><div class="l">Rows in file</div><div class="n">{{ plan.rows|length }}</div></div>
+      <div class="stat good"><div class="l">Will create</div><div class="n">{{ plan.valid_rows|length }}</div></div>
+      <div class="stat {% if plan.error_rows %}bad{% endif %}"><div class="l">Errors</div><div class="n">{{ plan.error_rows|length }}</div></div>
+    </div>
+
+    {% if plan.error_rows %}
+    <div class="banner error">
+      <strong>{{ plan.error_rows|length }} row(s) will be skipped:</strong>
+      <ul>{% for r in plan.error_rows|slice:":20" %}<li>line {{ r.line_no }} ({{ r.staff_id|default:"?" }}) — {{ r.error }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    {% if plan.valid_rows %}
+    <div class="card-head" style="margin-top:20px;"><h2>New employees</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Staff ID</th><th>Name</th><th>Unit</th><th>Position</th><th class="num">Salary</th><th>Joined</th></tr></thead>
+        <tbody>
+          {% for r in plan.valid_rows %}
+          <tr>
+            <td>{{ r.instance.staff_id }}</td>
+            <td>{{ r.instance.full_legal_name }}</td>
+            <td>{{ r.instance.business_unit.name }}</td>
+            <td>{{ r.instance.position }}</td>
+            <td class="num">{{ r.instance.monthly_gross_salary|money }}</td>
+            <td>{{ r.instance.date_joined }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <form method="post" class="actions" style="margin-top:16px;">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="1">
+      <button class="btn" type="submit">Create {{ plan.valid_rows|length }} employee(s)</button>
+      <a class="btn subtle" href="{% url 'employees:bulk_import' %}">Cancel</a>
+    </form>
+    {% else %}
+      <div class="card"><div class="empty">No valid rows to create.</div></div>
+    {% endif %}
+  {% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Employee year-to-date · {{ year }}{% endblock %}
+{% block crumb %}<a href="{% url 'reports:index' %}">Reports</a> / <b>Year-to-date</b>{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'reports:index' %}">&larr; Reports</a>
+<div class="page-head">
+  <h1>Employee year-to-date — {{ year }}</h1>
+  <p class="sub">Aggregated across all Salary runs in the year.</p>
+</div>
+
+<div class="card">
+  <form method="get" class="actions">
+    <label style="margin:0;">Year</label>
+    <select name="year" onchange="this.form.submit()">
+      {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+    </select>
+    <input type="search" name="q" value="{{ q }}" placeholder="Name or staff ID…">
+    <button class="btn" type="submit">Filter</button>
+  </form>
+</div>
+
+<div class="card table-scroll">
+  <table>
+    <thead>
+      <tr><th>Staff ID</th><th>Name</th><th>Unit</th><th class="num">Runs</th>
+        <th class="num">Gross</th><th class="num">PAYE</th><th class="num">NSSF 5%</th>
+        <th class="num">Deductions</th><th class="num">Net</th></tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td>{{ r.staff_id }}</td>
+        <td>{{ r.employee_name }}
+          {% if r.missing_tin %}<span class="pill warn plain" title="No TIN on file">TIN</span>{% endif %}
+          {% if r.missing_nssf_number %}<span class="pill warn plain" title="No NSSF number on file">NSSF</span>{% endif %}</td>
+        <td>{{ r.business_unit_name }}</td>
+        <td class="num">{{ r.runs }}</td>
+        <td class="num">{{ r.gross|money }}</td>
+        <td class="num">{{ r.paye|money }}</td>
+        <td class="num">{{ r.nssf_ee|money }}</td>
+        <td class="num">{{ r.ded|money }}</td>
+        <td class="num">{{ r.net|money }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9" class="muted">No salary-run data for {{ year }}.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

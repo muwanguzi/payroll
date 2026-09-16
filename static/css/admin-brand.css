@@ -1,0 +1,22 @@
+/* Next Media brand typography for the Unfold admin */
+@font-face {
+  font-family: "Proxima Nova"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("../fonts/proxima-nova-400.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Proxima Nova"; font-style: normal; font-weight: 600; font-display: swap;
+  src: url("../fonts/proxima-nova-600.ttf") format("truetype");
+}
+@font-face {
+  font-family: "Proxima Nova"; font-style: normal; font-weight: 700; font-display: swap;
+  src: url("../fonts/proxima-nova-800.ttf") format("truetype");
+}
+
+:root { --font-family-primary: "Proxima Nova", "Figtree", ui-sans-serif, system-ui, sans-serif; }
+
+body, .font-sans, [class*="font-sans"] {
+  font-family: "Proxima Nova", "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+}
+
+/* keep the Next Media logo crisp in the sidebar header */
+#nav-sidebar img, header img { image-rendering: -webkit-optimize-contrast; }

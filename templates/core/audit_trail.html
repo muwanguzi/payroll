@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Audit trail · Next Media Payroll{% endblock %}
+{% block crumb %}<b>Audit trail</b>{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Audit trail</h1>
+  <p class="sub">Every create, change and delete across employees, pay runs, recurring pay
+    components, business units and statutory tables — merged into one timeline, most recent
+    first. Sourced straight from the system's history tables; nothing here can be edited.</p>
+</div>
+
+<div class="card">
+  <form method="get" class="toolbar">
+    <label style="margin:0;">Record type</label>
+    <select name="model" onchange="this.form.submit()">
+      {% for key, label in model_choices %}
+        <option value="{{ key }}" {% if key == selected.model %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label style="margin:0;">Action</label>
+    <select name="action" onchange="this.form.submit()">
+      {% for key, label in action_choices %}
+        <option value="{{ key }}" {% if key == selected.action %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label style="margin:0;">By</label>
+    <select name="actor" onchange="this.form.submit()">
+      <option value="all" {% if selected.actor == "all" %}selected{% endif %}>Anyone</option>
+      {% for a in actors %}<option value="{{ a }}" {% if a == selected.actor %}selected{% endif %}>{{ a }}</option>{% endfor %}
+    </select>
+    <label style="margin:0;">Since</label>
+    <input type="date" name="since" value="{{ selected.since }}" onchange="this.form.submit()">
+    <label style="margin:0;">Show</label>
+    <select name="limit" onchange="this.form.submit()">
+      {% for n in limit_choices %}<option value="{{ n }}" {% if n == selected.limit %}selected{% endif %}>{{ n }}</option>{% endfor %}
+    </select>
+    <span class="muted" style="margin-left:auto">{{ entries|length }} event{{ entries|length|pluralize }}</span>
+  </form>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  {% if entries %}
+  <div class="timeline">
+    {% for e in entries %}
+    <div class="tl-row">
+      <div class="tl-when">
+        <div>{{ e.when|date:"M j, Y" }}</div>
+        <div class="muted" style="font-size:11.5px;">{{ e.when|date:"H:i" }}</div>
+      </div>
+      <div class="tl-dot">
+        <span class="pill plain {% if e.action == 'created' %}ok{% elif e.action == 'deleted' %}bad{% else %}info{% endif %}">{{ e.action }}</span>
+      </div>
+      <div class="tl-body">
+        <div><span class="muted" style="font-size:12px;">{{ e.model_label }}</span></div>
+        <div style="font-weight:600;">{{ e.title }}</div>
+        <div class="muted" style="font-size:12.5px; margin-top:2px;">by <b>{{ e.actor }}</b></div>
+        {% if e.changes %}
+        <table class="data" style="margin-top:8px;">
+          <thead><tr><th>Field</th><th>From</th><th>To</th></tr></thead>
+          <tbody>
+            {% for c in e.changes %}
+            <tr><td>{{ c.field|capfirst }}</td><td class="muted">{{ c.old }}</td><td>{{ c.new }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">No events match this filter.</div>
+  {% endif %}
+</div>
+
+<style>
+  .timeline { display: flex; flex-direction: column; }
+  .tl-row { display: grid; grid-template-columns: 84px 20px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .tl-row:last-child { border-bottom: none; }
+  .tl-when { font-size: 12.5px; color: var(--ink-soft); padding-top: 2px; }
+  .tl-dot { display: flex; justify-content: center; padding-top: 2px; }
+  .tl-body table.data { font-size: 12.5px; }
+  .tl-body table.data th, .tl-body table.data td { padding: 4px 8px; }
+</style>
+{% endblock %}

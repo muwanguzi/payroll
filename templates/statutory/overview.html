@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Statutory · PAYE / NSSF{% endblock %}
+{% block crumb %}<b>Statutory</b>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Statutory calculation engine</h1>
+  <p class="sub">Versioned, effective-dated PAYE bands and NSSF rates. A rate change is one new
+  version here — never a manual recompute across hundreds of rows.</p>
+</div>
+
+<h2>Quick check</h2>
+<div class="card">
+  <form hx-get="{% url 'statutory:overview' %}" hx-target="#preview" hx-trigger="submit, keyup changed delay:400ms from:input[name=gross]" hx-push-url="false" class="actions">
+    <label style="margin:0;">Monthly gross (UGX)</label>
+    <input type="text" name="gross" value="{{ gross_raw }}" placeholder="e.g. 3,500,000" style="width:160px;">
+    <button class="btn" type="submit">Compute</button>
+  </form>
+  <div id="preview">{% include "statutory/_preview.html" %}</div>
+</div>
+
+{% for table in tables %}
+<h2>{{ table.name }}
+  {% if table.is_active %}<span class="pill ok">active</span>{% else %}<span class="pill">inactive</span>{% endif %}
+  <span class="muted" style="font-weight:400;font-size:12px;">· {{ table.get_residency_display }} · effective {{ table.effective_from }}</span>
+</h2>
+<div class="card table-scroll">
+  <table>
+    <thead><tr><th>Band</th><th class="num">From</th><th class="num">To</th><th class="num">Marginal rate</th><th class="num">Tax at lower bound</th></tr></thead>
+    <tbody>
+      {% for b in table.bands.all %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td class="num">{{ b.lower_bound|money }}</td>
+          <td class="num">{% if b.upper_bound %}{{ b.upper_bound|money }}{% else %}—{% endif %}</td>
+          <td class="num">{{ b.marginal_rate }}</td>
+          <td class="num">{{ b.cumulative_base|money }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if table.source_note %}<p class="muted" style="font-size:12px;margin-bottom:0;">{{ table.source_note }}</p>{% endif %}
+</div>
+{% endfor %}
+
+<h2>NSSF configurations</h2>
+<div class="card table-scroll">
+  <table>
+    <thead><tr><th>Name</th><th>Effective from</th><th class="num">Employee</th><th class="num">Employer</th><th>Active</th></tr></thead>
+    <tbody>
+      {% for c in nssf_configs %}
+        <tr><td>{{ c.name }}</td><td>{{ c.effective_from }}</td>
+          <td class="num">{{ c.employee_rate }}</td><td class="num">{{ c.employer_rate }}</td>
+          <td>{% if c.is_active %}<span class="pill ok">yes</span>{% else %}no{% endif %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="muted" style="font-size:12px;">Edit versions in the <a href="/admin/statutory/payetable/">admin</a>. See <code>docs/RESEARCH.md</code> for sources.</p>
+{% endblock %}

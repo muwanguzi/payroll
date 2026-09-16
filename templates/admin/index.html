@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+    {% include "unfold/helpers/site_branding.html" %}
+{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="font-semibold mb-1 text-xl text-important">Payroll administration</h1>
+    <p class="text-font-subtle-light dark:text-font-subtle-dark text-sm">
+        One employee master &middot; versioned statutory tables &middot; computed totals &mdash; not a spreadsheet.
+    </p>
+</div>
+
+{# ---- KPI cards ---- #}
+<div class="grid grid-cols-1 gap-4 mb-6 sm:grid-cols-2 xl:grid-cols-4">
+    {% for kpi in kpis %}
+    <div class="bg-white border border-base-200 flex flex-col overflow-hidden p-5 relative rounded-default shadow-xs dark:bg-base-900 dark:border-base-800">
+        <span class="material-symbols-outlined absolute right-3 text-4xl text-base-200 top-3 dark:text-base-700">{{ kpi.icon }}</span>
+        <span class="text-font-subtle-light dark:text-font-subtle-dark text-xs uppercase tracking-wide">{{ kpi.title }}</span>
+        <span class="font-semibold mt-2 text-2xl text-important">{{ kpi.value }}</span>
+        <span class="mt-1 text-font-subtle-light dark:text-font-subtle-dark text-xs">{{ kpi.footer }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 gap-4 mb-8 lg:grid-cols-3">
+    {# data quality #}
+    <div class="bg-white border border-base-200 p-5 rounded-default shadow-xs dark:bg-base-900 dark:border-base-800">
+        <h2 class="border-b border-base-200 font-semibold mb-3 pb-2 text-important text-sm dark:border-base-800">Data-quality watch</h2>
+        <dl class="space-y-2 text-sm">
+            {% for row in data_quality %}
+            <div class="flex items-center justify-between">
+                <dt class="text-font-default-light dark:text-font-default-dark">{{ row.label }}</dt>
+                <dd class="font-medium {% if row.value %}text-red-600 dark:text-red-400{% else %}text-green-600 dark:text-green-400{% endif %}">{{ row.value }}</dd>
+            </div>
+            {% endfor %}
+        </dl>
+        <a href="{% url 'admin:employees_employee_changelist' %}" class="inline-block mt-4 text-primary-600 text-sm dark:text-primary-400 hover:underline">Open employee master &rarr;</a>
+    </div>
+
+    {# salary cost by unit #}
+    <div class="bg-white border border-base-200 p-5 rounded-default shadow-xs dark:bg-base-900 dark:border-base-800 lg:col-span-2">
+        <h2 class="border-b border-base-200 font-semibold mb-3 pb-2 text-important text-sm dark:border-base-800">Monthly salary cost by business unit</h2>
+        <div class="space-y-2">
+            {% for u in unit_costs %}
+            <div class="flex items-center gap-3 text-sm">
+                <span class="text-font-default-light dark:text-font-default-dark w-28 shrink-0 truncate">{{ u.business_unit__name|default:"(unassigned)" }}</span>
+                <span class="bg-base-100 dark:bg-base-800 grow h-2 rounded-full overflow-hidden">
+                    <span class="bg-primary-500 block h-full rounded-full" style="width: {{ u.pct }}%"></span>
+                </span>
+                <span class="tabular-nums text-font-subtle-light dark:text-font-subtle-dark w-10 text-right">{{ u.head }}</span>
+                <span class="tabular-nums text-important w-28 text-right">{{ u.cost_display }}</span>
+            </div>
+            {% empty %}
+            <p class="text-font-subtle-light dark:text-font-subtle-dark text-sm">No employees loaded yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% if recent_runs %}
+<div class="mb-8">
+    <h2 class="font-semibold mb-3 text-important text-sm">Recent pay runs</h2>
+    <div class="flex flex-wrap gap-2">
+        {% for r in recent_runs %}
+        <a href="{{ r.url }}" class="bg-white border border-base-200 flex items-center gap-2 px-3 py-2 rounded-default shadow-xs text-sm dark:bg-base-900 dark:border-base-800 hover:border-primary-300">
+            <span class="material-symbols-outlined text-base text-primary-500">receipt_long</span>
+            <span class="text-important">{{ r.title }}</span>
+            <span class="bg-base-100 dark:bg-base-800 ml-1 px-2 py-0.5 rounded-full text-xs">{{ r.status }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="flex flex-col lg:flex-row lg:gap-8">
+    <div class="grow">
+        {% include "unfold/helpers/app_list_default.html" %}
+    </div>
+    {% include "unfold/helpers/history.html" %}
+</div>
+{% endblock %}

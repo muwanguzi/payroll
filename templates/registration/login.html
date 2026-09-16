@@ -1,0 +1,35 @@
+{% load static %}
+<!doctype html>
+<html lang="en" data-theme="">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign in · Next Media Payroll</title>
+  <link rel="icon" href="{% static 'img/next-media-logo.png' %}">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script>try{var t=localStorage.getItem("nm-theme");if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="card" style="padding:28px;">
+      <img src="{% static 'img/next-media-logo.png' %}" alt="Next Media" style="height:34px;width:auto;display:block;margin-bottom:20px;">
+      <h1>Payroll System</h1>
+      <p class="sub" style="margin-top:4px;">Sign in to continue</p>
+      <form method="post" style="margin-top:8px;">
+        {% csrf_token %}
+        {% if form.errors %}<div class="banner error" style="margin-bottom:14px;">Invalid username or password.</div>{% endif %}
+        <label class="field-label">Username</label>
+        {{ form.username }}
+        <label class="field-label">Password</label>
+        {{ form.password }}
+        <button class="btn" type="submit" style="width:100%; margin-top:20px;">Sign in</button>
+      </form>
+      <p class="muted" style="margin-top:18px; font-size:12px;">
+        Demo: <code>admin</code> · <code>hr</code> · <code>hhc</code> · <code>cpo</code> · <code>cao</code> · <code>cfo</code> — password <code>payroll123</code>
+      </p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

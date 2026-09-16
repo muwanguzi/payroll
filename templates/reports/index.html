@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Reports · Next Media Payroll{% endblock %}
+{% block crumb %}<b>Reports</b>{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Reporting</h1>
+  <p class="sub">Month-over-month group totals and staff cost by entity — from calculated pay-run lines, so history persists across months.</p>
+</div>
+
+<div class="card">
+  <form method="get" class="toolbar">
+    <label>Year</label>
+    <select name="year" onchange="this.form.submit()">
+      {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+    </select>
+    <a class="btn ghost sm" style="margin-left:auto" href="{% url 'reports:employee_ytd' %}?year={{ year }}">Employee year-to-date →</a>
+  </form>
+</div>
+
+<div class="grid c4">
+  <div class="stat"><div class="l">{{ year }} gross</div><div class="n">{{ year_total.gross|default:0|money }}</div></div>
+  <div class="stat"><div class="l">{{ year }} PAYE</div><div class="n">{{ year_total.paye|default:0|money }}</div></div>
+  <div class="stat"><div class="l">{{ year }} NSSF (5%+10%)</div><div class="n">{{ year_total.nssf_ee|default:0|add:year_total.nssf_er|default:0|money }}</div></div>
+  <div class="stat"><div class="l">{{ year }} net paid</div><div class="n">{{ year_total.net|default:0|money }}</div></div>
+</div>
+
+{% if missing_tin_count or missing_nssf_number_count %}
+<div class="banner warning" style="margin-top:16px;">
+  <strong>Data quality:</strong>
+  {% if missing_tin_count %}{{ missing_tin_count }} employee(s) with NSSF contributions in {{ year }} have no TIN on file.{% endif %}
+  {% if missing_nssf_number_count %}{{ missing_nssf_number_count }} have no NSSF number on file.{% endif %}
+  <a href="{% url 'reports:employee_ytd' %}?year={{ year }}">Review on the year-to-date report →</a>
+</div>
+{% endif %}
+
+<div class="card" style="margin-top:16px;">
+  <div class="card-head"><h2>Salary run — net pay by month</h2></div>
+  {% for lbl, val, w in salary_net_bars %}
+  <div style="display:flex; align-items:center; gap:12px; padding:4px 0;">
+    <span class="muted" style="width:44px">{{ lbl }}</span>
+    <span class="bar-track"><span class="bar-fill" style="width:{{ w }}%"></span></span>
+    <span class="num" style="width:130px">{{ val|money }}</span>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card-head" style="margin-top:24px;"><h2>Monthly totals</h2></div>
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr><th>Month</th>
+        <th class="num">Salary head</th><th class="num">Salary gross</th><th class="num">PAYE</th>
+        <th class="num">NSSF 5%</th><th class="num">NSSF 10%</th><th class="num">Salary net</th>
+        <th class="num">Exp head</th><th class="num">Exp net</th></tr>
+    </thead>
+    <tbody>
+      {% for m in months %}
+      <tr>
+        <td>{{ m.name }}</td>
+        <td class="num">{{ m.salary.head|default:0 }}</td>
+        <td class="num">{{ m.salary.gross|default:0|money }}</td>
+        <td class="num">{{ m.salary.paye|default:0|money }}</td>
+        <td class="num">{{ m.salary.nssf_ee|default:0|money }}</td>
+        <td class="num">{{ m.salary.nssf_er|default:0|money }}</td>
+        <td class="num">{{ m.salary.net|default:0|money }}</td>
+        <td class="num">{{ m.expense.head|default:0 }}</td>
+        <td class="num">{{ m.expense.net|default:0|money }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="total">
+        <td>{{ year }} total</td><td class="num"></td>
+        <td class="num">{{ year_total.gross|default:0|money }}</td>
+        <td class="num">{{ year_total.paye|default:0|money }}</td>
+        <td class="num">{{ year_total.nssf_ee|default:0|money }}</td>
+        <td class="num">{{ year_total.nssf_er|default:0|money }}</td>
+        <td class="num">{{ year_total.net|default:0|money }}</td>
+        <td class="num"></td><td class="num"></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card-head" style="margin-top:24px;"><h2>Salary cost by business unit ({{ year }})</h2></div>
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Business unit</th><th class="num">Gross</th><th class="num">PAYE</th><th class="num">Net</th></tr></thead>
+    <tbody>
+      {% for u in by_unit %}
+      <tr>
+        <td>{{ u.business_unit_name }}</td>
+        <td class="num">{{ u.gross|money }}</td>
+        <td class="num">{{ u.paye|money }}</td>
+        <td class="num">{{ u.net|money }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4"><div class="empty">No calculated salary runs for {{ year }} yet.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

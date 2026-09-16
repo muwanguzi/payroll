@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Bank file · {{ run.period_label }}{% endblock %}
+{% block crumb %}<a href="{% url 'payroll:run_list' %}">Pay runs</a> / <a href="{% url 'payroll:run_detail' run.pk %}">{{ run.period_label }}</a> / <b>Bank file</b>{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'payroll:run_detail' run.pk %}">&larr; {{ run.title }}</a>
+<div class="page-head">
+  <h1>Bank file</h1>
+  <p class="sub">{{ run.get_run_type_display }} · {{ run.period_label }} · generated from the approved run.</p>
+</div>
+
+<div class="card">
+  <form method="get" class="actions">
+    <label style="margin:0;">Scope</label>
+    <select name="unit" onchange="this.form.submit()">
+      <option value="">All business units</option>
+      {% for code, name in units %}
+        <option value="{{ code }}" {% if unit == code %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+    <span class="muted">{{ result.row_count }} payable row{{ result.row_count|pluralize }} · total {{ result.total|money }} UGX</span>
+    {% if result.ok %}
+      <a class="btn" href="?download=1{% if unit %}&unit={{ unit }}{% endif %}">Download CSV</a>
+    {% else %}
+      <button class="btn" disabled title="Resolve the errors below first">Download CSV</button>
+    {% endif %}
+  </form>
+</div>
+
+{% if result.errors %}
+  <div class="msg error">
+    <strong>{{ result.errors|length }} record(s) block this file:</strong>
+    <ul class="plain">{% for e in result.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+{% if result.warnings %}
+  <div class="msg warning">
+    <ul class="plain">{% for w in result.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+<h2>Preview</h2>
+<div class="card table-scroll">
+  <pre style="margin:0;white-space:pre;font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;">{{ result.csv_text }}</pre>
+</div>
+{% endblock %}

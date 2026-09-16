@@ -1,0 +1,14 @@
+{% load payroll_extras %}{% if preview %}
+  {% if preview.error %}
+    <p class="msg error" style="margin-top:10px;">{{ preview.error }}</p>
+  {% else %}
+    <div class="grid cols-3" style="margin-top:12px;">
+      <div class="stat"><div class="n">{{ preview.paye|money }}</div><div class="l">PAYE</div></div>
+      <div class="stat"><div class="n">{{ preview.nssf_employee|money }}</div><div class="l">NSSF employee 5%</div></div>
+      <div class="stat"><div class="n">{{ preview.net_of_statutory|money }}</div><div class="l">After statutory</div></div>
+    </div>
+    <p class="muted" style="font-size:12px;">
+      Band: {{ preview.band }} · table: {{ preview.table }} · NSSF employer 10%: {{ preview.nssf_employer|money }}
+    </p>
+  {% endif %}
+{% endif %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Deduction approvals · Next Media Payroll{% endblock %}
+{% block crumb %}<b>Deduction approvals</b>{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Deduction approvals</h1>
+  <p class="sub">Every recurring deduction type has its own review queue. Approve or reject entries
+    scoped to that type — a rejected deduction stops applying to pay runs immediately; a pending one
+    still applies until reviewed (it does not block payroll).</p>
+</div>
+
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Type</th><th class="num">Pending</th><th class="num">Approved</th><th class="num">Rejected</th><th></th></tr></thead>
+    <tbody>
+      {% for c in codes %}
+        <tr onclick="location='{% url 'payroll:deduction_approval_list' c.code %}'" style="cursor:pointer">
+          <td>{{ c.name }} <span class="muted" style="font-size:11.5px;">({{ c.code }})</span></td>
+          <td class="num">{% if c.pending %}<span class="pill warn plain">{{ c.pending }}</span>{% else %}0{% endif %}</td>
+          <td class="num">{{ c.approved }}</td>
+          <td class="num">{% if c.rejected %}<span class="pill bad plain">{{ c.rejected }}</span>{% else %}0{% endif %}</td>
+          <td><a href="{% url 'payroll:deduction_approval_list' c.code %}">review →</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5"><div class="empty">No deduction codes configured.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

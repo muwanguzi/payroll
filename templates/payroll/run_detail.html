@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}{{ run.title }}{% endblock %}
+{% block crumb %}<a href="{% url 'payroll:run_list' %}">Pay runs</a> / <b>{{ run.scope_label }} · {{ run.period_label }}</b>{% endblock %}
+{% block content %}
+
+<a class="back-link" href="{% url 'payroll:run_list' %}">&larr; All pay runs</a>
+<div class="page-head">
+  <h1>{{ run.title }}</h1>
+  <p class="sub"><b>{{ run.scope_label }}</b> · {{ run.get_run_type_display }} · {{ run.period_label }} · pay date {{ run.pay_date }}
+    &nbsp;<span class="pill {{ run.status }}">{{ run.get_status_display }}</span></p>
+</div>
+
+{# ---- workflow ---- #}
+<div class="card">
+  <div class="stepline" style="margin-bottom:12px;">
+    {% for key, label in run.STATUS_STEPS %}
+      <span class="step {% if run.status == key %}now{% elif key in run.completed_steps %}done{% endif %}">
+        <span class="dot"></span>{{ label }}</span>
+      {% if not forloop.last %}<span class="sep">→</span>{% endif %}
+    {% endfor %}
+  </div>
+
+  <div class="actions">
+    {% if can_calc and run.status == RunStatus.DRAFT or can_calc and run.status == RunStatus.CALCULATED %}
+      <form class="inline" method="post" action="{% url 'payroll:run_calculate' run.pk %}">{% csrf_token %}
+        <button class="btn">{% if run.status == RunStatus.DRAFT %}Calculate{% else %}Recalculate{% endif %}</button>
+      </form>
+    {% endif %}
+    {% if can_review and run.status == RunStatus.CALCULATED %}
+      <form class="inline" method="post" action="{% url 'payroll:run_review' run.pk %}">{% csrf_token %}
+        <button class="btn" {% if not run.is_balanced %}disabled title="Fix variances first"{% endif %}>Mark reviewed</button>
+      </form>
+    {% endif %}
+    {% if can_approve and run.status == RunStatus.REVIEWED %}
+      <form class="inline" method="post" action="{% url 'payroll:run_approve' run.pk %}">{% csrf_token %}
+        <button class="btn">Approve</button></form>
+    {% endif %}
+    {% if can_disburse and run.status == RunStatus.APPROVED %}
+      <form class="inline" method="post" action="{% url 'payroll:run_disburse' run.pk %}">{% csrf_token %}
+        <button class="btn warn">Mark disbursed</button></form>
+    {% endif %}
+    {% if can_reopen and run.status == RunStatus.REVIEWED or can_reopen and run.status == RunStatus.APPROVED %}
+      <form class="inline" method="post" action="{% url 'payroll:run_reopen' run.pk %}">{% csrf_token %}
+        <button class="btn subtle">Reopen</button></form>
+    {% endif %}
+    {% if can_disburse and run.status == RunStatus.APPROVED or can_disburse and run.status == RunStatus.DISBURSED %}
+      <a class="btn ghost" href="{% url 'payroll:run_bank_file' run.pk %}">Bank file →</a>
+    {% endif %}
+    {% if can_calc and run.status != RunStatus.APPROVED and run.status != RunStatus.DISBURSED %}
+      <span style="flex:1"></span>
+      <a class="btn subtle sm" href="{% url 'payroll:run_edit' run.pk %}">Edit</a>
+      <form class="inline" method="post" action="{% url 'payroll:run_delete' run.pk %}"
+            onsubmit="return confirm('Delete this pay run and all its lines?')">{% csrf_token %}
+        <button class="btn danger sm">Delete</button>
+      </form>
+    {% endif %}
+  </div>
+
+  {% if line_count %}
+  <div class="actions" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--c-border);">
+    <span class="muted" style="font-size:12px;">Exports</span>
+    {% if run.is_expense %}
+      <span class="muted" style="font-size:12px;">Payslips are merged into the Salary run for this period — open that run once it's disbursed.</span>
+    {% elif run.status == RunStatus.DISBURSED %}
+      <a class="btn subtle sm" href="{% url 'payroll:run_payslips_pdf' run.pk %}">Payslips PDF</a>
+      {% if can_disburse %}
+        <form class="inline" method="post" action="{% url 'payroll:run_payslips_email' run.pk %}"
+              onsubmit="return confirm('Email a payslip PDF to every employee in this run who has an address on file?')">{% csrf_token %}
+          <button class="btn subtle sm">Email all payslips</button>
+        </form>
+      {% endif %}
+    {% else %}
+      <span class="btn subtle sm" style="opacity:.5; cursor:not-allowed;" title="Payslips unlock once this run is marked Disbursed">Payslips PDF</span>
+    {% endif %}
+    {% if statutory_returns_available %}
+      <a class="btn subtle sm" href="{% url 'payroll:run_paye_return' run.pk %}">PAYE return CSV</a>
+      <a class="btn subtle sm" href="{% url 'payroll:run_nssf_return' run.pk %}">NSSF return CSV</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <p class="muted" style="margin:10px 0 0; font-size:12px;">
+    {% if run.created_by %}Prepared by {{ run.created_by }}. {% endif %}
+    {% if run.reviewed_by %}Reviewed by {{ run.reviewed_by }} on {{ run.reviewed_at }}. {% endif %}
+    {% if run.approved_by %}Approved by {{ run.approved_by }} on {{ run.approved_at }}. {% endif %}
+    Four-officer chain: Head of Human Capital prepares · Chief People Officer reviews · Chief Audit
+    Officer approves · Chief Finance Officer disburses. Each step must be a different person.
+  </p>
+</div>
+
+{% if line_count %}
+<div class="grid c4">
+  <div class="stat"><svg class="ico"><use href="#i-users"/></svg><div class="l">Employees</div><div class="n">{{ totals.headcount }}</div></div>
+  <div class="stat"><div class="l">Gross</div><div class="n">{{ totals.gross|money }}</div></div>
+  <div class="stat"><div class="l">Net pay</div><div class="n">{{ totals.net|money }}</div></div>
+  <div class="stat {% if run.variance_line_count %}bad{% else %}good{% endif %}">
+    <div class="l">Variance lines</div><div class="n">{{ run.variance_line_count }}</div>
+    <div class="f">{% if run.variance_line_count %}needs fixing{% else %}all balanced{% endif %}</div>
+  </div>
+</div>
+
+{% if variance_lines %}
+  <div class="banner error" style="margin-top:16px;">
+    <strong>{{ variance_lines.count }} line(s) do not balance</strong> (gross ≠ net + statutory + deductions):
+    <ul>{% for l in variance_lines|slice:":10" %}<li>{{ l.staff_id }} {{ l.employee_name }} — variance {{ l.variance }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+{% if invalid_accounts %}
+  <div class="banner warning" style="margin-top:12px;">
+    <strong>{{ invalid_accounts.count }} line(s) have an invalid / missing payment account</strong> — blocked from the bank file:
+    <ul>{% for l in invalid_accounts|slice:":10" %}<li>{{ l.staff_id }} {{ l.employee_name }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+{% if not run.is_expense and missing_tin_lines %}
+  <div class="banner warning" style="margin-top:12px;">
+    <strong>{{ missing_tin_lines.count }} line(s) have no TIN on file</strong> — PAYE is still calculated, but the
+    PAYE return will file with a blank TIN. Fix on the employee record and recalculate:
+    <ul>{% for l in missing_tin_lines|slice:":10" %}<li>{{ l.staff_id }} {{ l.employee_name }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+{% if not run.is_expense and missing_nssf_lines %}
+  <div class="banner warning" style="margin-top:12px;">
+    <strong>{{ missing_nssf_lines.count }} line(s) have no NSSF number on file</strong> — NSSF is still deducted and
+    computed, but the NSSF return will file with a blank NSSF number. Fix on the employee record and recalculate:
+    <ul>{% for l in missing_nssf_lines|slice:":10" %}<li>{{ l.staff_id }} {{ l.employee_name }}</li>{% endfor %}</ul>
+  </div>
+{% endif %}
+
+{% if comparison %}
+<div class="card" style="margin-top:16px;">
+  <div class="card-head">
+    <h2>vs {{ comparison.previous.period_label }}</h2>
+    <span class="muted" style="font-size:12px;">prior {{ run.get_run_type_display|lower }} run</span>
+  </div>
+  <div class="grid c4">
+    <div class="stat">
+      <div class="l">Headcount</div>
+      <div class="n">{% if comparison.headcount > 0 %}+{% endif %}{{ comparison.headcount }}</div>
+      <div class="f">{{ comparison.joiner_count }} joined · {{ comparison.leaver_count }} left</div>
+    </div>
+    <div class="stat">
+      <div class="l">Gross Δ</div>
+      <div class="n">{% if comparison.gross > 0 %}+{% endif %}{{ comparison.gross|money }}</div>
+    </div>
+    <div class="stat">
+      <div class="l">PAYE Δ</div>
+      <div class="n">{% if comparison.paye > 0 %}+{% endif %}{{ comparison.paye|money }}</div>
+    </div>
+    <div class="stat {% if comparison.net > 0 %}bad{% elif comparison.net < 0 %}good{% endif %}">
+      <div class="l">Net pay Δ</div>
+      <div class="n">{% if comparison.net > 0 %}+{% endif %}{{ comparison.net|money }}</div>
+      <div class="f">{{ comparison.net_prev|money }} → {{ comparison.net_now|money }}</div>
+    </div>
+  </div>
+  {% if comparison.joiners or comparison.leavers %}
+  <div class="grid c2" style="margin-top:12px;">
+    <div>
+      <div class="muted" style="font-size:12px; margin-bottom:4px;">Joiners ({{ comparison.joiner_count }})</div>
+      {% for n in comparison.joiners|slice:":12" %}<span class="pill good plain" style="margin:2px">{{ n }}</span>{% empty %}<span class="muted">—</span>{% endfor %}
+      {% if comparison.joiner_count > 12 %}<span class="muted">+{{ comparison.joiner_count|add:"-12" }} more</span>{% endif %}
+    </div>
+    <div>
+      <div class="muted" style="font-size:12px; margin-bottom:4px;">Leavers ({{ comparison.leaver_count }})</div>
+      {% for n in comparison.leavers|slice:":12" %}<span class="pill bad plain" style="margin:2px">{{ n }}</span>{% empty %}<span class="muted">—</span>{% endfor %}
+      {% if comparison.leaver_count > 12 %}<span class="muted">+{{ comparison.leaver_count|add:"-12" }} more</span>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<div class="card-head" style="margin-top:24px;">
+  <h2>Totals by business unit</h2>
+  <span class="muted" style="font-size:12px;">grouped, not hard-coded rows</span>
+</div>
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Business unit</th><th class="num">Head</th><th class="num">Gross</th>
+      {% if not run.is_expense %}<th class="num">PAYE</th><th class="num">NSSF 5%</th><th class="num">NSSF 10%</th>{% endif %}
+      <th class="num">Deductions</th><th class="num">Net</th></tr></thead>
+    <tbody>
+      {% for u in unit_totals %}
+        <tr>
+          <td>{{ u.business_unit_name }}</td>
+          <td class="num">{{ u.headcount }}</td>
+          <td class="num">{{ u.gross|money }}</td>
+          {% if not run.is_expense %}
+            <td class="num">{{ u.paye|money }}</td>
+            <td class="num">{{ u.nssf_employee|money }}</td>
+            <td class="num">{{ u.nssf_employer|money }}</td>
+          {% endif %}
+          <td class="num">{{ u.deductions|money }}</td>
+          <td class="num">{{ u.net|money }}</td>
+        </tr>
+      {% endfor %}
+      <tr class="total">
+        <td>GRAND TOTAL</td>
+        <td class="num">{{ totals.headcount }}</td>
+        <td class="num">{{ totals.gross|money }}</td>
+        {% if not run.is_expense %}
+          <td class="num">{{ totals.paye|money }}</td>
+          <td class="num">{{ totals.nssf_employee|money }}</td>
+          <td class="num">{{ totals.nssf_employer|money }}</td>
+        {% endif %}
+        <td class="num">{{ totals.deductions|money }}</td>
+        <td class="num">{{ totals.net|money }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="card-head" style="margin-top:24px;">
+  <h2>Lines</h2>
+  {% if line_count > 500 %}<span class="muted" style="font-size:12px;">first 500 of {{ line_count }}</span>{% endif %}
+</div>
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Staff ID</th><th>Name</th><th>Unit</th><th class="num">Gross</th>
+      {% if not run.is_expense %}<th class="num">PAYE</th><th class="num">NSSF 5%</th>{% endif %}
+      <th class="num">Deductions</th><th class="num">Net</th><th class="num">Var.</th><th></th></tr></thead>
+    <tbody>
+      {% for l in lines %}
+        <tr>
+          <td>{{ l.staff_id }}</td>
+          <td>{{ l.employee_name }}{% if not l.account_valid %} <span class="pill bad plain" title="Invalid/missing account">acct</span>{% endif %}
+            {% if not run.is_expense and l.missing_tin %} <span class="pill warn plain" title="No TIN on file">TIN</span>{% endif %}
+            {% if not run.is_expense and l.missing_nssf_number %} <span class="pill warn plain" title="No NSSF number on file">NSSF</span>{% endif %}</td>
+          <td>{{ l.business_unit_name }}</td>
+          <td class="num">{{ l.gross_pay|money }}</td>
+          {% if not run.is_expense %}
+            <td class="num" title="{{ l.paye_band }}">{{ l.paye|money }}</td>
+            <td class="num">{{ l.nssf_employee|money }}</td>
+          {% endif %}
+          <td class="num">{{ l.total_deductions|money }}</td>
+          <td class="num">{{ l.net_pay|money }}</td>
+          <td class="num">{% if l.variance %}<span style="color:var(--c-bad)">{{ l.variance }}</span>{% else %}0{% endif %}</td>
+          <td><a href="{% url 'payroll:payslip' l.pk %}">slip</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+  <div class="card"><div class="empty">
+    <svg class="ico"><use href="#i-receipt"/></svg>
+    No lines yet — calculate the run to build them from the employee master.
+  </div></div>
+{% endif %}
+{% endblock %}

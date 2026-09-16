@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Dashboard · Next Media Payroll{% endblock %}
+{% block crumb %}<b>Dashboard</b>{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Payroll dashboard</h1>
+  <p class="sub">One employee master, versioned statutory tables, computed totals — a consolidated view across every business unit.</p>
+</div>
+
+<div class="grid c4">
+  <div class="stat">
+    <svg class="ico"><use href="#i-users"/></svg>
+    <div class="l">Active employees</div>
+    <div class="n">{{ active_count }}</div>
+    <div class="f">{{ employee_count }} records in total</div>
+  </div>
+  <div class="stat">
+    <svg class="ico"><use href="#i-dashboard"/></svg>
+    <div class="l">Business units</div>
+    <div class="n">{{ unit_count }}</div>
+    <div class="f">consolidated group view</div>
+  </div>
+  <div class="stat">
+    <svg class="ico"><use href="#i-receipt"/></svg>
+    <div class="l">Open pay runs</div>
+    <div class="n">{{ open_runs }}</div>
+    <div class="f">not yet disbursed</div>
+  </div>
+  <div class="stat {% if data_quality.missing_account or data_quality.leavers_still_active %}bad{% else %}good{% endif %}">
+    <svg class="ico"><use href="#i-percent"/></svg>
+    <div class="l">Data-quality flags</div>
+    <div class="n">{{ data_quality.missing_position|add:data_quality.missing_account|add:data_quality.missing_tin|add:data_quality.missing_nssf_number|add:data_quality.leavers_still_active }}</div>
+    <div class="f">across the employee master</div>
+  </div>
+</div>
+
+<div class="grid c2" style="margin-top:16px; align-items:start;">
+  <div class="card">
+    <div class="card-head"><h2>Headcount &amp; salary cost by unit</h2></div>
+    <table class="data">
+      <thead><tr><th>Business unit</th><th class="num">Head</th><th class="num">Monthly cost (UGX)</th></tr></thead>
+      <tbody>
+      {% for row in by_unit %}
+        <tr>
+          <td>{{ row.business_unit__name|default:"(unassigned)" }}</td>
+          <td class="num">{{ row.headcount }}</td>
+          <td class="num">{{ row.salary_cost|money }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3"><div class="empty">No employees yet — run <code>manage.py import_template</code>.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div style="display:flex; flex-direction:column; gap:16px;">
+    <div class="card">
+      <div class="card-head"><h2>Recent pay runs</h2>
+        <a class="btn sm ghost" href="{% url 'payroll:run_list' %}">All runs</a></div>
+      {% for run in recent_runs %}
+        <a href="{% url 'payroll:run_detail' run.pk %}" style="display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--c-border);">
+          <svg class="ico" style="width:16px;height:16px;color:var(--c-primary)"><use href="#i-receipt"/></svg>
+          <span style="flex:1; color:var(--c-text)">{{ run.title }}</span>
+          <span class="pill {{ run.status }}">{{ run.get_status_display }}</span>
+        </a>
+      {% empty %}
+        <div class="empty">No pay runs yet. <a href="{% url 'payroll:run_create' %}">Create one</a>.</div>
+      {% endfor %}
+    </div>
+
+    <div class="card">
+      <div class="card-head"><h2>Data-quality watch</h2></div>
+      <dl class="kv">
+        <dt>Missing position</dt><dd>{{ data_quality.missing_position }}</dd>
+        <dt>No bank / mobile money</dt><dd>{{ data_quality.missing_account }}</dd>
+        <dt>Missing TIN</dt><dd>{{ data_quality.missing_tin }}</dd>
+        <dt>Missing NSSF number</dt><dd>{{ data_quality.missing_nssf_number }}</dd>
+        <dt>Leavers still marked active</dt><dd>{{ data_quality.leavers_still_active }}</dd>
+      </dl>
+      <p class="muted" style="margin:12px 0 0; font-size:12px;">
+        Staff ID and Position are mandatory at entry; one master record removes cross-sheet name drift by construction.
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

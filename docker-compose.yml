@@ -1,0 +1,41 @@
+# Local: `docker compose up --build`
+# Server: the pipeline (.github/workflows/deploy.yml) pulls IMAGE and runs
+#   `docker compose up -d` here - see deploy/README-docker.md for the
+#   one-time server setup.
+#
+# Binds only to 127.0.0.1:8001 - never exposed directly to the internet.
+# Whatever already fronts this server (Caddy/nginx, see deploy/) reverse
+# proxies to that port, same as the non-Docker deploy did.
+#
+# Static/media/db are BIND mounts (not named volumes) at paths relative to
+# this file, deliberately matching /opt/payroll/app/{staticfiles,media,data}
+# on the server - that's exactly what the host-level Caddy/nginx config from
+# deploy/docker-provision.sh already serves directly off disk, so switching
+# to Docker doesn't require touching that config at all.
+#
+# Testing this locally (not via deploy/docker-provision.sh, which handles
+# this on the server)? Create + chown the bind-mount dirs first, or Docker
+# creates them as root:root and the container's uid-1000 `payroll` user
+# can't write to them:
+#   mkdir -p data media staticfiles && sudo chown -R 1000:1000 data media staticfiles
+services:
+  web:
+    image: ${IMAGE:-payroll:local}
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DJANGO_DB_PATH: /app/data/db.sqlite3
+    volumes:
+      - ./data:/app/data
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    ports:
+      - "127.0.0.1:8001:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/login/').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

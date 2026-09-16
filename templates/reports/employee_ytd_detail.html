@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}{{ employee.full_legal_name }} · YTD {{ year }}{% endblock %}
+{% block crumb %}<a href="{% url 'employees:list' %}">Employees</a> / <a href="{% url 'employees:detail' employee.pk %}">{{ employee.staff_id }}</a> / <b>YTD</b>{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'employees:detail' employee.pk %}">&larr; {{ employee.full_legal_name }}</a>
+<div class="page-head">
+  <h1>Year-to-date — {{ year }}</h1>
+  <p class="sub">{{ employee.full_legal_name }} · {{ employee.staff_id }} · {{ employee.business_unit.name }}
+    {% if employee.missing_tin %}<span class="pill warn plain" title="No TIN on file">Missing TIN</span>{% endif %}
+    {% if employee.missing_nssf_number %}<span class="pill warn plain" title="No NSSF number on file">Missing NSSF #</span>{% endif %}</p>
+</div>
+
+<div class="card">
+  <form method="get" class="actions">
+    <label style="margin:0;">Year</label>
+    <select name="year" onchange="this.form.submit()">
+      {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="grid cols-4">
+  <div class="stat"><div class="n">{{ totals.gross|default:0|money }}</div><div class="l">Gross YTD</div></div>
+  <div class="stat"><div class="n">{{ totals.paye|default:0|money }}</div><div class="l">PAYE YTD</div></div>
+  <div class="stat"><div class="n">{{ totals.nssf_ee|default:0|money }}</div><div class="l">NSSF employee YTD</div></div>
+  <div class="stat"><div class="n">{{ totals.net|default:0|money }}</div><div class="l">Net YTD</div></div>
+</div>
+
+<div class="card table-scroll">
+  <table>
+    <thead><tr><th>Period</th><th>Run</th><th class="num">Gross</th><th class="num">PAYE</th>
+      <th class="num">NSSF 5%</th><th class="num">Deductions</th><th class="num">Net</th><th></th></tr></thead>
+    <tbody>
+      {% for l in lines %}
+      <tr>
+        <td>{{ l.pay_run.period_label }}</td>
+        <td>{{ l.pay_run.get_run_type_display }}</td>
+        <td class="num">{{ l.gross_pay|money }}</td>
+        <td class="num">{{ l.paye|money }}</td>
+        <td class="num">{{ l.nssf_employee|money }}</td>
+        <td class="num">{{ l.total_deductions|money }}</td>
+        <td class="num">{{ l.net_pay|money }}</td>
+        <td><a href="{% url 'payroll:payslip' l.pk %}">slip</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" class="muted">No pay lines for {{ year }}.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

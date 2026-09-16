@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+cookies
+cj
+cj2
+*.output
+.git/
+.github/
+deploy/
+nextjs-ui-kit/
+scratch_shot.py
+Template_Payroll.xlsx
+Next_Media_Payroll_System_Analysis.docx
+# docs/ is NOT excluded - docs/user-manual.html is served at runtime by
+# apps/core/views.py (the in-app Documents section reads it off disk).

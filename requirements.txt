@@ -1,0 +1,11 @@
+# Direct dependencies. Run:  .venv/bin/pip install -r requirements.txt
+# (pip itself was bootstrapped via get-pip.py - the host has no ensurepip; see README)
+
+Django==6.1
+django-simple-history==3.13.0      # audit trail (who changed what, when, old -> new)
+django-unfold==0.104.1             # modern admin theme + custom dashboard
+xhtml2pdf==0.2.17                  # payslip PDF rendering (pulls reportlab, pillow, lxml, ...)
+gunicorn==23.0.0                   # production WSGI server (deploy/ scripts)
+
+# Dev only (screenshot smoke tests), not required to run the app:
+#   playwright==1.62.0   +  a system Chrome/Chromium

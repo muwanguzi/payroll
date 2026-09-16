@@ -1,0 +1,1057 @@
+<title>Next Media Payroll Manual</title>
+<meta name="description" content="How HR and the four-officer chain — Head of Human Capital, Chief People Officer, Chief Audit Officer, Chief Finance Officer — run the mid-month and month-end pay cycles, from the employee master to the bank file.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  /* ============================================================
+     Next Media Payroll Manual — brand CI from nextmedia.co.ug
+     teal #19A7B5 · dark teal #0B2E38 · vermillion #D73C26 · warm paper
+     ============================================================ */
+  :root {
+    --font-sans: "Figtree", "Proxima Nova", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "IBM Plex Mono", "Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+
+    --ground: #f6f4ec;
+    --surface: #ffffff;
+    --surface-2: #faf7ee;
+    --ink: #15201f;
+    --ink-2: #47555a;
+    --ink-3: #7d8a8c;
+    --rule: #e4dfd0;
+    --rule-2: #efe9db;
+    --teal: #0e7f8b;
+    --teal-link: #0b5f68;
+    --teal-deep: #0b2e38;
+    --teal-wash: #e6f2f2;
+    --vermillion: #cf3f2b;
+    --vermillion-wash: #fae7e2;
+    --ok: #1a7f4b;      --ok-wash: #e7f4ec;
+    --warn: #94600a;    --warn-wash: #fbf0da;
+    --stop: #bf372a;
+    --code-bg: #efeadd;
+    --shadow: 0 1px 2px rgba(20, 30, 28, .05), 0 14px 34px -18px rgba(20, 30, 28, .16);
+    --measure: 66ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #091315;
+      --surface: #0f1c1e;
+      --surface-2: #0c1719;
+      --ink: #e8efee;
+      --ink-2: #9db0b1;
+      --ink-3: #6a7c7d;
+      --rule: #223236;
+      --rule-2: #192a2d;
+      --teal: #3fc9d6;
+      --teal-link: #5bd3de;
+      --teal-deep: #0b2e38;
+      --teal-wash: #10302f;
+      --vermillion: #e8604b;
+      --vermillion-wash: #2b1613;
+      --ok: #5fd39a;      --ok-wash: #0c2a1d;
+      --warn: #efc069;    --warn-wash: #281d08;
+      --stop: #f0928a;
+      --code-bg: #15262a;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 40px -18px rgba(0, 0, 0, .6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #091315;
+    --surface: #0f1c1e;
+    --surface-2: #0c1719;
+    --ink: #e8efee;
+    --ink-2: #9db0b1;
+    --ink-3: #6a7c7d;
+    --rule: #223236;
+    --rule-2: #192a2d;
+    --teal: #3fc9d6;
+    --teal-link: #5bd3de;
+    --teal-deep: #0b2e38;
+    --teal-wash: #10302f;
+    --vermillion: #e8604b;
+    --vermillion-wash: #2b1613;
+    --ok: #5fd39a;      --ok-wash: #0c2a1d;
+    --warn: #efc069;    --warn-wash: #281d08;
+    --stop: #f0928a;
+    --code-bg: #15262a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 16px 40px -18px rgba(0, 0, 0, .6);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 2rem; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16.5px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .top-rule { height: 4px; background: var(--vermillion); position: sticky; top: 0; z-index: 50; }
+
+  a { color: var(--teal-link); text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, var(--teal-link) 40%, transparent); }
+  a:hover { text-decoration-color: currentColor; }
+  :focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; border-radius: 3px; }
+
+  code, .mono { font-family: var(--font-mono); font-size: .86em; }
+  p code, li code, td code, .mono-chip {
+    background: var(--code-bg); border: 1px solid var(--rule);
+    padding: .08em .42em; border-radius: 5px; white-space: nowrap;
+    color: var(--ink);
+  }
+
+  /* ---------- shell ---------- */
+  .wrap {
+    max-width: 1160px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem);
+    display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; gap: 1.5rem; } }
+
+  /* ---------- masthead ---------- */
+  .masthead { grid-column: 1 / -1; padding: clamp(2.2rem, 6vw, 4rem) 0 1.6rem; border-bottom: 1px solid var(--rule); }
+  .brand { display: inline-flex; align-items: center; gap: .5rem; }
+  .brand b {
+    font-weight: 700; letter-spacing: .02em; font-size: 1.05rem;
+    color: var(--vermillion); text-transform: uppercase;
+  }
+  .brand .bkt {
+    width: 16px; height: 20px; border: 2.5px solid var(--teal); border-left: 0; display: inline-block;
+  }
+  .masthead h1 {
+    font-size: clamp(2rem, 5.4vw, 3rem); line-height: 1.08; margin: 1.1rem 0 .5rem;
+    font-weight: 700; letter-spacing: -.02em; text-wrap: balance; max-width: 20ch;
+  }
+  .masthead .lede { font-size: 1.12rem; color: var(--ink-2); max-width: 60ch; margin: 0; }
+  .masthead .meta {
+    margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: .5rem .55rem;
+    font-family: var(--font-mono); font-size: .74rem; letter-spacing: .04em; text-transform: uppercase;
+  }
+  .meta .tag {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 999px;
+    padding: .3rem .7rem; color: var(--ink-2);
+  }
+  .meta .tag b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- table of contents ---------- */
+  details.toc { position: sticky; top: 2.2rem; font-size: .9rem; }
+  details.toc > summary {
+    list-style: none; font-family: var(--font-mono);
+    text-transform: uppercase; letter-spacing: .12em; font-size: .68rem;
+    color: var(--ink-3); padding: 0 0 .85rem; pointer-events: none;
+  }
+  details.toc > summary::-webkit-details-marker { display: none; }
+  details.toc ol { list-style: none; margin: 0; padding: 0; counter-reset: toc; }
+  details.toc li { counter-increment: toc; margin: 0; }
+  details.toc a {
+    display: grid; grid-template-columns: 1.6em 1fr; gap: .4em; align-items: baseline;
+    padding: .34rem 0 .34rem .7rem; margin-left: -.7rem;
+    color: var(--ink-2); text-decoration: none; line-height: 1.35;
+    border-left: 2px solid transparent;
+  }
+  details.toc a::before {
+    content: counter(toc, decimal-leading-zero); font-family: var(--font-mono);
+    font-size: .74em; color: var(--ink-3);
+  }
+  details.toc a:hover { color: var(--ink); }
+  details.toc a.active { color: var(--teal-link); border-left-color: var(--teal); font-weight: 600; }
+  details.toc a.active::before { color: var(--teal); }
+  @media (max-width: 900px) {
+    details.toc {
+      position: static; background: var(--surface); border: 1px solid var(--rule);
+      border-radius: 10px; padding: .2rem 1.1rem;
+    }
+    details.toc > summary {
+      pointer-events: auto; cursor: pointer; padding: .85rem 0;
+      display: flex; justify-content: space-between; align-items: center; color: var(--ink-2);
+    }
+    details.toc > summary::after { content: "＋"; color: var(--teal); font-size: 1rem; }
+    details.toc[open] > summary::after { content: "－"; }
+    details.toc ol { padding-bottom: .6rem; }
+  }
+
+  /* ---------- main flow ---------- */
+  main { min-width: 0; max-width: var(--measure); padding-bottom: 5rem; }
+  main > section { padding-top: 3.2rem; }
+  main > section:first-child { padding-top: 2.2rem; }
+  .eyebrow {
+    font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .12em;
+    font-size: .72rem; color: var(--teal-link); display: flex; align-items: center; gap: .6rem;
+  }
+  .eyebrow::before {
+    content: counter(sec, decimal-leading-zero); counter-increment: sec;
+    background: var(--teal); color: #fff; font-weight: 600;
+    padding: .12rem .5rem; border-radius: 5px; letter-spacing: .06em;
+  }
+  main { counter-reset: sec; }
+  h2 {
+    font-size: clamp(1.5rem, 3.4vw, 1.9rem); line-height: 1.15; margin: .7rem 0 1rem;
+    font-weight: 700; letter-spacing: -.015em; text-wrap: balance;
+  }
+  h3 {
+    font-size: 1.12rem; margin: 2.2rem 0 .3rem; font-weight: 650; letter-spacing: -.01em;
+    text-wrap: balance;
+  }
+  h4 { font-size: .95rem; margin: 1.5rem 0 .3rem; font-weight: 650; }
+  p { margin: .8rem 0; }
+  main ul, main ol { margin: .8rem 0; padding-left: 1.3rem; }
+  main li { margin: .35rem 0; }
+  main ul li::marker { color: var(--teal); }
+  strong { font-weight: 650; }
+  .dim { color: var(--ink-2); }
+
+  /* menu path */
+  .path {
+    font-family: var(--font-mono); font-size: .8rem; color: var(--ink-2);
+    background: var(--surface-2); border: 1px solid var(--rule); border-radius: 7px;
+    padding: .5rem .75rem; display: inline-flex; gap: .4rem; align-items: center; flex-wrap: wrap;
+    margin: .3rem 0 .2rem;
+  }
+  .path b { color: var(--teal-link); font-weight: 600; }
+
+  /* numbered procedures */
+  ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 1rem 0; }
+  ol.steps > li {
+    counter-increment: step; position: relative; padding-left: 2.6rem; margin: .9rem 0;
+  }
+  ol.steps > li::before {
+    content: counter(step); position: absolute; left: 0; top: .05rem;
+    font-family: var(--font-mono); font-size: .78rem; font-weight: 600;
+    width: 1.7rem; height: 1.7rem; display: grid; place-items: center;
+    background: var(--teal-wash); color: var(--teal-link);
+    border: 1px solid color-mix(in srgb, var(--teal) 30%, transparent); border-radius: 7px;
+  }
+
+  /* cards / callouts */
+  .card {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 1.2rem 1.35rem; margin: 1.4rem 0; box-shadow: var(--shadow);
+  }
+  .card > :first-child { margin-top: 0; }
+  .card > :last-child { margin-bottom: 0; }
+  .card h3, .card h4 { margin-top: 0; }
+
+  .callout {
+    border-left: 3px solid var(--teal); background: var(--teal-wash);
+    padding: .85rem 1.1rem; border-radius: 0 9px 9px 0; margin: 1.2rem 0;
+    font-size: .96rem;
+  }
+  .callout.important { border-color: var(--vermillion); background: var(--vermillion-wash); }
+  .callout.caution { border-color: var(--warn); background: var(--warn-wash); }
+  .callout .k {
+    font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em;
+    font-size: .68rem; font-weight: 600; color: var(--teal-link); display: block; margin-bottom: .2rem;
+  }
+  .callout.important .k { color: var(--vermillion); }
+  .callout.caution .k { color: var(--warn); }
+  .callout > :last-child { margin-bottom: 0; }
+
+  /* pipeline */
+  .pipeline {
+    display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; margin: 1.2rem 0;
+    font-family: var(--font-mono); font-size: .78rem;
+  }
+  .pipeline .stage {
+    display: inline-flex; align-items: center; gap: .45rem;
+    border: 1px solid var(--rule); border-radius: 999px; padding: .3rem .75rem;
+    background: var(--surface); white-space: nowrap;
+  }
+  .pipeline .stage::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: currentColor; }
+  .pipeline .arrow { color: var(--ink-3); }
+  .s-draft { color: var(--ink-3); }
+  .s-calc { color: var(--teal-link); }
+  .s-rev { color: var(--warn); }
+  .s-appr, .s-disb { color: var(--ok); }
+
+  /* tables */
+  .table-scroll { overflow-x: auto; margin: 1.2rem 0; border: 1px solid var(--rule); border-radius: 10px; }
+  table.ref {
+    width: 100%; border-collapse: collapse; font-size: .92rem;
+    font-variant-numeric: tabular-nums;
+  }
+  table.ref th, table.ref td { padding: .6rem .85rem; text-align: left; border-bottom: 1px solid var(--rule-2); }
+  table.ref thead th {
+    background: var(--surface-2); font-family: var(--font-mono); font-weight: 600;
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-2);
+    border-bottom: 2px solid var(--teal);
+  }
+  table.ref td.num, table.ref th.num { text-align: right; }
+  table.ref tbody tr:last-child td { border-bottom: 0; }
+  table.ref tbody tr:hover, table.ref tbody tr:hover { background: var(--surface-2); }
+
+  /* role grid */
+  .roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1.4rem 0; }
+  @media (max-width: 720px) { .roles { grid-template-columns: 1fr; } }
+  .role {
+    border: 1px solid var(--rule); border-radius: 12px; padding: 1.1rem 1.2rem; background: var(--surface);
+  }
+  .role h4 { margin: 0 0 .1rem; font-size: 1rem; }
+  .role .who { font-family: var(--font-mono); font-size: .72rem; color: var(--teal-link); text-transform: uppercase; letter-spacing: .06em; }
+  .role ul { margin: .7rem 0 0; padding-left: 1.1rem; font-size: .92rem; }
+
+  /* definition list for troubleshooting / glossary */
+  dl.qa { margin: 1.2rem 0; }
+  dl.qa > div { padding: 1rem 0; border-top: 1px solid var(--rule); }
+  dl.qa > div:last-child { border-bottom: 1px solid var(--rule); }
+  dl.qa dt { font-weight: 650; margin-bottom: .3rem; }
+  dl.qa dd { margin: .2rem 0; color: var(--ink-2); font-size: .96rem; }
+  dl.qa dd .lab {
+    font-family: var(--font-mono); font-size: .68rem; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--teal-link); margin-right: .5rem;
+  }
+  dl.gloss { margin: 1.2rem 0; display: grid; gap: .1rem; }
+  dl.gloss dt { font-weight: 650; margin-top: .9rem; }
+  dl.gloss dd { margin: .15rem 0 0; color: var(--ink-2); font-size: .96rem; }
+
+  hr.soft { border: 0; border-top: 1px solid var(--rule); margin: 2.4rem 0; }
+
+  footer {
+    grid-column: 1 / -1; border-top: 1px solid var(--rule); margin-top: 3rem;
+    padding: 2rem 0 3rem; font-size: .84rem; color: var(--ink-3);
+  }
+  footer .brand b { font-size: .82rem; }
+  footer p { margin: .5rem 0; max-width: 70ch; }
+
+  @media print {
+    .top-rule, nav.toc { display: none; }
+    .wrap { display: block; max-width: none; }
+    main { max-width: none; }
+    .card, .callout { box-shadow: none; break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+    h2, h3 { break-after: avoid; }
+  }
+</style>
+
+<div class="top-rule"></div>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="brand"><b>Next&nbsp;Media</b><span class="bkt"></span></span>
+    <h1>Payroll Manual</h1>
+    <p class="lede">How HR and the four-officer chain run the two monthly pay cycles &mdash; from the
+      employee master record through calculation, review, approval and the bank file &mdash; on the
+      Next Media Payroll System.</p>
+    <div class="meta">
+      <span class="tag">Version <b>1.1</b></span>
+      <span class="tag">Cycles: <b>Expense Allowance · Salary</b></span>
+      <span class="tag">Chain: <b>Prepare · Review · Approve · Disburse</b></span>
+      <span class="tag">Currency <b>UGX</b></span>
+    </div>
+  </header>
+
+  <details class="toc" id="toc" open>
+    <summary>Contents</summary>
+    <ol>
+      <li><a href="#overview">What this system is</a></li>
+      <li><a href="#start">Getting started</a></li>
+      <li><a href="#rhythm">The monthly rhythm</a></li>
+      <li><a href="#hr">For HR — the employee master</a></li>
+      <li><a href="#finance">Preparing a cycle — Head of Human Capital</a></li>
+      <li><a href="#approver">Review, approval &amp; payout — the sign-off chain</a></li>
+      <li><a href="#reference">Reference</a></li>
+      <li><a href="#trouble">Troubleshooting</a></li>
+      <li><a href="#glossary">Glossary</a></li>
+      <li><a href="#admin">Administrator appendix</a></li>
+    </ol>
+  </details>
+
+  <main>
+
+    <!-- 1 ============================================= -->
+    <section id="overview">
+      <div class="eyebrow">Orientation</div>
+      <h2>What this system is</h2>
+      <p>The Payroll System replaces the four-sheet Excel workbook that used to carry Next Media
+        payroll. It does the same job &mdash; a mid-month allowance run and a month-end salary run
+        for each business unit &mdash; but rests on two changes that remove the fragile parts of a
+        spreadsheet:</p>
+      <ul>
+        <li><strong>One employee master record.</strong> Every screen, pay run and bank file reads a
+          person&rsquo;s name, Staff&nbsp;ID and bank details from a single record. Nothing is
+          re-typed, so the name-spelling drift between sheets cannot happen. Matching is always by
+          <span class="mono-chip">Staff ID</span>, never by name.</li>
+        <li><strong>An automated statutory engine.</strong> PAYE and NSSF are computed from
+          versioned, effective-dated tax tables &mdash; not typed in by hand. Every payslip shows
+          which band was used.</li>
+      </ul>
+      <p>Totals are computed by grouping on the business-unit field, so adding or removing one
+        employee can never quietly break a total somewhere else.</p>
+
+      <div class="card">
+        <h3 style="margin-bottom:.4rem;">The model in one glance</h3>
+        <p class="dim" style="font-size:.95rem;margin-top:.2rem;">A <strong>pay run</strong> is one
+          cycle for one month. Calculating it builds one <strong>line</strong> per active employee.
+          Each line moves through a fixed lifecycle:</p>
+        <div class="pipeline">
+          <span class="stage s-draft">Draft</span><span class="arrow">&rarr;</span>
+          <span class="stage s-calc">Calculated</span><span class="arrow">&rarr;</span>
+          <span class="stage s-rev">Reviewed</span><span class="arrow">&rarr;</span>
+          <span class="stage s-appr">Approved</span><span class="arrow">&rarr;</span>
+          <span class="stage s-disb">Disbursed</span>
+        </div>
+        <p class="dim" style="font-size:.95rem;margin-bottom:0;">The Head of Human Capital prepares
+          and calculates the run; the Chief People Officer reviews it; the Chief Audit Officer
+          approves it; the Chief Finance Officer disburses it. Each step must be a different person,
+          and a bank file can only come from an approved run.</p>
+      </div>
+    </section>
+
+    <!-- 2 ============================================= -->
+    <section id="start">
+      <div class="eyebrow">First session</div>
+      <h2>Getting started</h2>
+
+      <h3>Sign in</h3>
+      <p>Open the system URL and sign in with the username and password issued by IT. If you forget
+        your password, IT resets it &mdash; there is no self-service reset. The demo environment uses
+        <span class="mono-chip">admin</span>, <span class="mono-chip">hr</span>,
+        <span class="mono-chip">hhc</span>, <span class="mono-chip">cpo</span>,
+        <span class="mono-chip">cao</span> and <span class="mono-chip">cfo</span> with the
+        password <span class="mono-chip">payroll123</span>.</p>
+
+      <h3>The workspace</h3>
+      <p>The left sidebar is the whole map of the system:</p>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Section</th><th>What it holds</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono-chip">Dashboard</span></td><td>Headcount and salary cost by unit, open pay runs, and a data-quality watch.</td></tr>
+            <tr><td><span class="mono-chip">Reports</span></td><td>Month-over-month totals, cost by business unit, and employee year-to-date.</td></tr>
+            <tr><td><span class="mono-chip">Pay runs</span></td><td>Every run, its status, and the place you create and process them.</td></tr>
+            <tr><td><span class="mono-chip">Employees</span></td><td>The employee master &mdash; search, open a record, add, edit, bulk-load.</td></tr>
+            <tr><td><span class="mono-chip">Statutory</span></td><td>A PAYE / NSSF calculator and the current and draft tax tables.</td></tr>
+            <tr><td><span class="mono-chip">Admin</span></td><td>Configuration and the full change history (see <a href="#admin">the appendix</a>).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The button at the top right toggles <strong>light, dark and system</strong> appearance; your
+        choice is remembered in that browser.</p>
+
+      <h3>Your role decides what you can do</h3>
+      <p>The pay-run workflow is a <strong>four-officer chain</strong> &mdash; each step belongs to a
+        different office, and the same person cannot do two consecutive steps. The system hides
+        actions you cannot take, so a missing button is usually a role limit, not a fault.</p>
+      <div class="roles">
+        <div class="role">
+          <div class="who">HR Data Entry</div>
+          <h4>Keep the master current</h4>
+          <ul>
+            <li>Add and edit employees</li>
+            <li>Attach recurring deductions &amp; earnings</li>
+            <li>Bulk update &amp; bulk onboarding from CSV</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="who">Head of Human Capital</div>
+          <h4>Prepare the run</h4>
+          <ul>
+            <li>Create, calculate and recalculate pay runs</li>
+            <li>Edit or delete a run before it is approved</li>
+            <li>Also holds all employee-master rights</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="who">Chief People Officer</div>
+          <h4>Review</h4>
+          <ul>
+            <li>Mark a calculated run <em>Reviewed</em></li>
+            <li>Blocked while any line has a variance</li>
+            <li>Must not be the person who prepared it</li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="who">Chief Audit Officer</div>
+          <h4>Approve &mdash; and audit</h4>
+          <ul>
+            <li>Approve a reviewed run</li>
+            <li>Must not be the reviewer</li>
+            <li>Approval unlocks the bank file &amp; returns</li>
+            <li>Only role with access to the <strong>Audit trail</strong></li>
+          </ul>
+        </div>
+        <div class="role">
+          <div class="who">Chief Finance Officer</div>
+          <h4>Disburse</h4>
+          <ul>
+            <li>Generate the bank file &amp; statutory returns</li>
+            <li>Email payslips</li>
+            <li>Mark the run <em>Disbursed</em> (must not be the approver)</li>
+          </ul>
+        </div>
+      </div>
+      <p class="dim" style="font-size:.95rem;">An administrator (superuser) can do everything above
+        plus the configuration in the appendix.</p>
+    </section>
+
+    <!-- 3 ============================================= -->
+    <section id="rhythm">
+      <div class="eyebrow">The operating cycle</div>
+      <h2>The monthly rhythm</h2>
+      <p>For each business unit, two runs go out each month against largely the same people:</p>
+
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Run type</th><th>Timing</th><th>What it pays</th><th>Statutory?</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Expense Allowance</strong></td>
+              <td>Mid-month (around the 15<sup>th</sup>)</td>
+              <td>Gross allowance, less recurring deductions such as SACCO and Fuel/Advance</td>
+              <td>No PAYE or NSSF</td>
+            </tr>
+            <tr>
+              <td><strong>Salary</strong></td>
+              <td>Month-end (around the 27<sup>th</sup>)</td>
+              <td>Basic salary plus taxable earnings, less PAYE, NSSF and recurring deductions</td>
+              <td>PAYE + NSSF computed automatically</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The run&rsquo;s title is built from its pay date &mdash; for example
+        <span class="mono-chip">PAYROLL FOR THE MONTH ENDED 27 OCTOBER 2026</span>. You never type it.</p>
+
+      <h3>The run lifecycle</h3>
+      <p>Every run moves forward through these states. It can be reopened from
+        <em>Reviewed</em> or <em>Approved</em> back to <em>Calculated</em>; a
+        <em>Disbursed</em> run is final.</p>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>State</th><th>Meaning</th><th>Who moves it on</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pipeline" style="margin:0"><span class="stage s-draft">Draft</span></span></td><td>Created, not yet calculated.</td><td>Head of Human Capital &mdash; <em>Calculate</em></td></tr>
+            <tr><td><span class="pipeline" style="margin:0"><span class="stage s-calc">Calculated</span></span></td><td>Lines built from the master + statutory engine. Safe to recalculate.</td><td>Chief People Officer &mdash; <em>Mark reviewed</em></td></tr>
+            <tr><td><span class="pipeline" style="margin:0"><span class="stage s-rev">Reviewed</span></span></td><td>The Chief People Officer has checked it. Blocked while any line has a variance.</td><td>Chief Audit Officer &mdash; <em>Approve</em></td></tr>
+            <tr><td><span class="pipeline" style="margin:0"><span class="stage s-appr">Approved</span></span></td><td>Signed off. The bank file and statutory returns unlock.</td><td>Chief Finance Officer &mdash; <em>Mark disbursed</em></td></tr>
+            <tr><td><span class="pipeline" style="margin:0"><span class="stage s-disb">Disbursed</span></span></td><td>Paid. Loan balances have been reduced. Final.</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <span class="k">Notifications</span>
+        Each step emails the next officer in the chain: calculating notifies the Chief People Officer,
+        reviewing notifies the Chief Audit Officer, approving notifies the Chief Finance Officer, and
+        disbursing notifies the Head of Human Capital and Chief Finance Officer.
+      </div>
+    </section>
+
+    <!-- 4 ============================================= -->
+    <section id="hr">
+      <div class="eyebrow">For HR</div>
+      <h2>The employee master</h2>
+      <p>Everything a pay run needs about a person lives on one record. Keep it current and the runs
+        take care of themselves.</p>
+
+      <h3>Add an employee</h3>
+      <div class="path"><b>Employees</b> ▸ <b>+ New employee</b></div>
+      <ol class="steps">
+        <li>Fill the <strong>Identity</strong> block. <span class="mono-chip">Staff ID</span> and
+          <span class="mono-chip">Position</span> are mandatory; add <span class="mono-chip">Email</span>
+          so payslips can be sent, and <span class="mono-chip">TIN</span> / <span class="mono-chip">NSSF number</span>
+          so the person appears correctly on statutory returns.</li>
+        <li>Set <strong>Placement</strong> &mdash; business unit, department, engagement type
+          (Payroll staff, Independent contractor, or Wage staff).</li>
+        <li>Enter the <strong>Pay bases</strong>: monthly gross salary (the base for the Salary run)
+          and monthly expense allowance (the base for the Expense Allowance run). Either can be zero.</li>
+        <li>Enter a <strong>payment method</strong> &mdash; a bank account number (numeric, 8&ndash;20
+          digits) or a mobile-money number. At least one is required.</li>
+        <li>Set the <strong>join date</strong> and save. The person is now picked up by any run whose
+          pay date is on or after that date.</li>
+      </ol>
+
+      <h3>Edit an employee</h3>
+      <div class="path"><b>Employees</b> ▸ open the record ▸ <b>Edit</b></div>
+      <p>Change anything except the identity of a paid line already in a run. A <strong>leaver</strong>
+        is handled by setting a <span class="mono-chip">Left</span> date &mdash; the record flips to
+        <em>Inactive</em> and drops out of future runs, but history is kept. Never delete a person.</p>
+
+      <h3>Attach a recurring deduction or earning</h3>
+      <div class="path"><b>Employees</b> ▸ open the record ▸ <b>+ Deduction</b> / <b>+ Earning</b></div>
+      <ol class="steps">
+        <li>Choose the <strong>code</strong> (SACCO, Food, Hire purchase, Acting allowance&hellip; see
+          the <a href="#codes">code list</a>).</li>
+        <li>Enter the <strong>amount</strong> taken each run.</li>
+        <li>For a deduction, choose <strong>Apply on</strong> &mdash; <em>Both runs</em>,
+          <em>Salary run only</em>, or <em>Expense Allowance run only</em>. This lets you take, say,
+          a SACCO contribution on the month-end run only for one person even though the SACCO code
+          itself allows both. You cannot pick a run the code does not support (the form rejects it).</li>
+        <li>Set recurrence to <em>Recurring</em> (every matching run) or <em>One-off</em>.</li>
+        <li>For a <strong>loan</strong> code &mdash; Hire purchase or Fuel/Advance &mdash; enter the
+          <span class="mono-chip">Opening balance</span>. The instalment is capped at the balance,
+          the balance falls each time a run is disbursed, and the deduction switches itself off when
+          it reaches zero.</li>
+        <li>Optionally set <span class="mono-chip">Effective from</span> / <span class="mono-chip">to</span>
+          dates to fence the deduction to a period. Save. Use <em>edit</em> / <em>remove</em> on the
+          row to change it later.</li>
+      </ol>
+      <div class="callout">
+        <span class="k">Which run picks it up</span>
+        A deduction is taken on a run only when both the <strong>code</strong> allows that run type
+        <em>and</em> the deduction&rsquo;s <strong>Apply on</strong> setting includes it. Each code is
+        flagged for the Salary run, the Expense Allowance run, or both &mdash; <em>Penalty</em> is
+        salary-only, <em>Fuel/Advance</em> is expense-only.
+      </div>
+
+      <h3>Bulk update from a spreadsheet</h3>
+      <div class="path"><b>Employees</b> ▸ <b>Bulk update</b></div>
+      <p>Use this to change salaries, allowances, status or bank details for many people at once.</p>
+      <ol class="steps">
+        <li>Click <strong>Download template CSV</strong> for a file keyed by
+          <span class="mono-chip">staff_id</span> with current values.</li>
+        <li>Edit only the columns you want to change &mdash; any column you leave out is untouched.
+          Updatable columns: <span class="mono">monthly_gross_salary, monthly_expense_allowance,
+          status, position, email, tin, nssf_number, bank_name, bank_account_number</span>.</li>
+        <li>Upload it and click <strong>Preview changes</strong>. You get a row-by-row
+          <em>from &rarr; to</em> table plus a count of rows that will update, are unchanged, or have
+          errors (unknown Staff ID, a non-numeric amount).</li>
+        <li>Check the preview, then <strong>Apply</strong>. Nothing is written until you confirm.</li>
+      </ol>
+
+      <h3>Onboard new joiners from a spreadsheet</h3>
+      <div class="path"><b>Employees</b> ▸ <b>Onboard CSV</b></div>
+      <p>Same preview-then-confirm flow, for creating people. Required columns:
+        <span class="mono">staff_id, full_legal_name, position, business_unit</span> (code or name),
+        <span class="mono">date_joined</span>, and a payment method
+        (<span class="mono">bank_account_number</span> or <span class="mono">mobile_money_number</span>).
+        Every row is validated exactly as the on-screen form would &mdash; a duplicate Staff&nbsp;ID,
+        an unknown business unit or a bad date becomes an error row and is skipped.</p>
+
+      <h3 id="required">Mandatory fields &amp; validation</h3>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Rule</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono-chip">Staff ID</span> is required and unique</td><td>It is the only key used to match a person across runs, imports and the bank file.</td></tr>
+            <tr><td><span class="mono-chip">Position</span> is required</td><td>Closes the completeness gap that left blanks in the old sheets.</td></tr>
+            <tr><td>A payment method is required</td><td>A run cannot pay someone with no account or mobile-money number.</td></tr>
+            <tr><td>Bank account: numeric, 8&ndash;20 digits</td><td>Checked on save <em>and</em> again when the bank file is generated.</td></tr>
+            <tr><td>Leaver date not before join date</td><td>Prevents an impossible employment window.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The <span class="mono-chip">Dashboard</span> shows a running count of records missing a
+        position, missing a payment method, or marked active with a leaver date.</p>
+    </section>
+
+    <!-- 5 ============================================= -->
+    <section id="finance">
+      <div class="eyebrow">For the Head of Human Capital</div>
+      <h2>Preparing a cycle</h2>
+
+      <h3>Create a pay run</h3>
+      <div class="path"><b>Pay runs</b> ▸ <b>New pay run</b></div>
+      <ol class="steps">
+        <li>Choose the <strong>run type</strong> &mdash; Expense Allowance or Salary.</li>
+        <li>Choose the <strong>scope</strong>. Runs are normally scoped to <strong>one business
+          unit</strong>, so pick the unit. Two shortcuts are also available:
+          <em>Every business unit</em> creates one Draft run per unit in a single step, and
+          <em>All business units</em> creates a single group-wide run.</li>
+        <li>Pick the <strong>period</strong> (month and year). The pay date defaults to the 15<sup>th</sup>
+          or the 27<sup>th</sup>; override it if the actual payment date differs.</li>
+        <li>Add a note if useful and click <strong>Create run</strong>. You land on the run in
+          <em>Draft</em>. Only one run of each type can exist per unit per month.</li>
+      </ol>
+      <div class="callout">
+        <span class="k">One unit at a time</span>
+        Each unit&rsquo;s run is calculated, reviewed, approved and disbursed on its own &mdash; the
+        <span class="mono-chip">Pay runs</span> list has a business-unit filter, and the run title
+        carries the unit name.
+      </div>
+
+      <h3>Calculate</h3>
+      <div class="path">Run page ▸ <b>Calculate</b></div>
+      <p>Calculating builds one line per employee who is <strong>active on the pay date</strong>, from
+        their pay base, their attached earnings and deductions, and &mdash; for a Salary run &mdash;
+        PAYE and NSSF from the tax table effective on that date. It is <strong>idempotent</strong>:
+        run it again any time before approval and it rebuilds cleanly. Loan balances are only
+        <em>projected</em> here; they are not touched until the run is disbursed.</p>
+
+      <h3>Read the run</h3>
+      <p>The run page shows, in order:</p>
+      <ul>
+        <li><strong>Headline totals</strong> &mdash; employees, gross, net pay, and a count of
+          variance lines.</li>
+        <li><strong>vs the previous run</strong> &mdash; gross / PAYE / net deltas against the last
+          run of the same type, plus who joined and who left since then.</li>
+        <li><strong>Totals by business unit</strong> &mdash; grouped, with a grand total. These add
+          up by construction; there are no hand-pointed formulas.</li>
+        <li><strong>Lines</strong> &mdash; every employee, with the PAYE band shown on hover. A line
+          with a missing or invalid account is tagged <span class="mono-chip">acct</span>.</li>
+      </ul>
+
+      <h3>Fix a variance</h3>
+      <p>Every line carries a check: <span class="mono">gross &minus; (net + statutory + deductions)</span>
+        must be <strong>0</strong>. A non-zero value almost always means a deduction is larger than
+        the pay it is taken from.</p>
+      <ol class="steps">
+        <li>Open the flagged line from the banner at the top of the run.</li>
+        <li>Fix the underlying data &mdash; reduce the deduction amount, or set its
+          <span class="mono-chip">Effective to</span> date, or adjust the pay base on the employee
+          record.</li>
+        <li>Return to the run and <strong>Recalculate</strong>. The banner clears when every line
+          balances.</li>
+      </ol>
+      <div class="callout important">
+        <span class="k">Review is gated</span>
+        <em>Mark reviewed</em> stays disabled until zero lines have a variance. This is deliberate.
+      </div>
+
+      <h3>Edit or delete a run</h3>
+      <div class="path">Run page ▸ <b>Edit</b> / <b>Delete</b></div>
+      <p>You can change the <strong>pay date</strong> and <strong>notes</strong> while the run is
+        <em>Draft</em> or <em>Calculated</em>. If you move the pay date on a calculated run,
+        recalculate &mdash; the statutory figures are tied to it. A run can be deleted only while
+        <em>Draft</em> or <em>Calculated</em>; once approved it is locked.</p>
+
+      <h3>Hand it to the Chief People Officer</h3>
+      <p>When the run balances, the Head of Human Capital&rsquo;s job is done &mdash; the Chief People
+        Officer takes it from <em>Calculated</em>. The <em>Mark reviewed</em> button only appears for
+        that officer.</p>
+    </section>
+
+    <!-- 6 ============================================= -->
+    <section id="approver">
+      <div class="eyebrow">Review · Approve · Disburse</div>
+      <h2>The sign-off chain</h2>
+      <p>Three officers act after the run is calculated, and <strong>each must be a different
+        person</strong> &mdash; the system rejects a self-review, a self-approval and a
+        self-disbursement.</p>
+
+      <h3>Review &mdash; Chief People Officer</h3>
+      <div class="path">Run page ▸ <b>Mark reviewed</b></div>
+      <p>Only a <em>Calculated</em> run with zero variance lines can be marked reviewed, and the
+        reviewer <strong>must not be the person who prepared the run</strong>. This records that the
+        Chief People Officer has checked the run and hands it to the Chief Audit Officer. Your name
+        and the time are stamped on the run automatically.</p>
+
+      <h3>Approve &mdash; Chief Audit Officer</h3>
+      <div class="path">Run page ▸ <b>Approve</b></div>
+      <p>Only a <em>Reviewed</em> run can be approved, and <strong>the approver must be a different
+        person from the reviewer</strong> &mdash; the system rejects a self-approval. Your name and
+        timestamp are captured. Approval unlocks the bank file and the statutory returns.</p>
+
+      <h3>The audit trail</h3>
+      <div class="path"><b>Audit trail</b> in the sidebar (Chief Audit Officer only)</div>
+      <p>A single, read-only timeline of every create, change and delete across employees, pay
+        runs, recurring deductions &amp; earnings, business units and statutory tables &mdash;
+        most recent first, with the person who made each change and, for an update, exactly
+        which fields moved and their old and new values. Filter it by record type, action
+        (created / updated / deleted), who made the change, and a start date.</p>
+      <p class="dim" style="font-size:.95rem;">This is not a separate log kept alongside the
+        system &mdash; it reads the same change history every screen and the admin already write
+        to, just merged into one place and given plain-English labels. Nothing on this page can
+        be edited.</p>
+
+      <h3>Disburse &mdash; Chief Finance Officer</h3>
+      <p>Everything from here &mdash; the bank file, the statutory returns, payslip emails and
+        <em>Mark disbursed</em> &mdash; belongs to the Chief Finance Officer, who <strong>must not be
+        the officer who approved the run</strong>.</p>
+
+      <h4>Generate the bank file</h4>
+      <div class="path">Run page ▸ <b>Bank file</b></div>
+      <ol class="steps">
+        <li>Choose the scope &mdash; the whole group or a single business unit.</li>
+        <li>Review the preview. Records with a missing or malformed account number are listed and
+          <strong>block the download</strong> until fixed on the employee record (then recalculate).</li>
+        <li>Click <strong>Download CSV</strong>. The file has a numbered row per payee &mdash; name,
+          Staff&nbsp;ID, bank, account, amount &mdash; and a <span class="mono-chip">TOTAL</span> row.
+          Amounts are plain numbers so the bank&rsquo;s import can parse them.</li>
+      </ol>
+
+      <h3>Statutory returns</h3>
+      <div class="path">Run page ▸ <b>PAYE return CSV</b> / <b>NSSF return CSV</b></div>
+      <p>Available from a calculated Salary run. The <strong>PAYE return</strong> lists TIN,
+        Staff&nbsp;ID, name, unit, gross, chargeable income, PAYE and band, with a total. The
+        <strong>NSSF return</strong> lists NSSF number, gross, the 5% employee and 10% employer
+        amounts and the 15% total, with totals. Both are structured for import, not a fixed portal
+        template &mdash; confirm the layout your filing tool expects.</p>
+
+      <h3>Payslips</h3>
+      <p>Every payslip is branded with the <strong>employee&rsquo;s business unit</strong> &mdash; its
+        logo and name in the header. Upload a unit&rsquo;s logo in the admin
+        (<span class="mono-chip">Business units</span> &rsaquo; the unit &rsaquo; <em>Logo</em>);
+        units without one show the Next Media mark.</p>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>You want&hellip;</th><th>Where</th></tr></thead>
+          <tbody>
+            <tr><td>One payslip on screen or printed</td><td>Run page ▸ a line ▸ <span class="mono-chip">slip</span></td></tr>
+            <tr><td>One payslip as a PDF</td><td>The payslip page ▸ <b>Download PDF</b></td></tr>
+            <tr><td>Every payslip in the run as one PDF</td><td>Run page ▸ <b>Payslips PDF</b> (add a unit to scope it)</td></tr>
+            <tr><td>Email one payslip to the employee</td><td>The payslip page ▸ <b>Email</b></td></tr>
+            <tr><td>Email the whole run</td><td>Run page ▸ <b>Email all payslips</b></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p><em>Email all payslips</em> sends a PDF to every employee with an address on file and skips
+        anyone with no email or a zero net &mdash; it reports how many were sent and skipped.</p>
+
+      <h3>Mark disbursed</h3>
+      <div class="path">Run page ▸ <b>Mark disbursed</b></div>
+      <p>Do this once payment has actually gone out. This is the <strong>single point</strong> where
+        loan balances (Hire purchase, Fuel/Advance) are reduced by the instalment taken in this run;
+        a loan that reaches zero switches itself off. The run is now final.</p>
+
+      <h3>Reopen a run</h3>
+      <p>If something needs changing after review or approval, use <strong>Reopen</strong> to send
+        the run back to <em>Calculated</em>. Fix the data, recalculate, and take it through review
+        and approval again. A <em>Disbursed</em> run cannot be reopened.</p>
+    </section>
+
+    <!-- 7 ============================================= -->
+    <section id="reference">
+      <div class="eyebrow">Reference</div>
+      <h2>Rates, codes &amp; screens</h2>
+
+      <h3 id="paye">Uganda PAYE &mdash; monthly, resident individuals</h3>
+      <p>The engine applies the table that is <strong>active and effective</strong> on the run&rsquo;s
+        pay date. The figures below are the current URA bands.</p>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Monthly chargeable income (UGX)</th><th>Tax on that income</th></tr></thead>
+          <tbody>
+            <tr><td>0 &ndash; 235,000</td><td>Nil</td></tr>
+            <tr><td>235,001 &ndash; 335,000</td><td>10% of the amount above 235,000</td></tr>
+            <tr><td>335,001 &ndash; 410,000</td><td>20% of the amount above 335,000, plus 10,000</td></tr>
+            <tr><td>410,001 &ndash; 10,000,000</td><td>30% of the amount above 410,000, plus 25,000</td></tr>
+            <tr><td>Above 10,000,000</td><td>The 30% band, plus a further 10% of the amount above 10,000,000</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="dim" style="font-size:.95rem;">The extra 10% above UGX&nbsp;10,000,000 makes the
+        effective top rate 40%. PAYE is charged on gross pay; the employee&rsquo;s NSSF contribution
+        is <em>not</em> deducted first.</p>
+      <div class="callout">
+        <span class="k">Proposed FY2026/27</span>
+        A draft table with a UGX&nbsp;335,000 tax-free threshold is pre-loaded but
+        <strong>inactive</strong>. An administrator activates it once assented; runs already
+        calculated keep the table they were calculated against.
+      </div>
+
+      <h3>NSSF</h3>
+      <p><strong>5%</strong> is deducted from the employee&rsquo;s gross. <strong>10%</strong> is an
+        employer cost shown for information, not deducted from pay. Together they are the 15%
+        remitted to NSSF. This applies to every employer under the NSSF Act 2022.</p>
+
+      <h3 id="codes">Earning &amp; deduction codes</h3>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Deduction codes</th><th>Applies to</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>SACCO</td><td>Both runs</td><td></td></tr>
+            <tr><td>Food</td><td>Both runs</td><td></td></tr>
+            <tr><td>Medicare</td><td>Both runs</td><td></td></tr>
+            <tr><td>Hire purchase</td><td>Both runs</td><td>Loan &mdash; carries a balance</td></tr>
+            <tr><td>Cost share</td><td>Both runs</td><td></td></tr>
+            <tr><td>ID replacement</td><td>Both runs</td><td></td></tr>
+            <tr><td>Fuel / Advance</td><td>Expense run only</td><td>Loan &mdash; carries a balance</td></tr>
+            <tr><td>Penalty</td><td>Salary run only</td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Earning codes</th><th>Applies to</th><th>Taxable?</th></tr></thead>
+          <tbody>
+            <tr><td>Acting allowance</td><td>Salary run</td><td>Yes</td></tr>
+            <tr><td>Overtime</td><td>Salary run</td><td>Yes</td></tr>
+            <tr><td>Bonus</td><td>Salary run</td><td>Yes</td></tr>
+            <tr><td>Back pay</td><td>Salary run</td><td>Yes</td></tr>
+            <tr><td>Extra expense allowance</td><td>Expense run</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="dim" style="font-size:.95rem;">New codes are added by an administrator without a
+        developer &mdash; see the appendix.</p>
+
+      <h3>The statutory calculator</h3>
+      <div class="path"><b>Statutory</b></div>
+      <p>Enter a monthly gross and the page returns the PAYE, the 5% NSSF, the take-home after
+        statutory, and the band used. Below it are the full active and draft band tables. Use it to
+        sanity-check a figure before a run.</p>
+
+      <h3>Reports &amp; analytics</h3>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Report</th><th>Answers</th></tr></thead>
+          <tbody>
+            <tr><td>Monthly totals (Reports)</td><td>Gross, PAYE, NSSF and net by month for a year, both run types, with a net-pay trend bar.</td></tr>
+            <tr><td>Salary cost by business unit</td><td>Where the annual salary cost sits across the group.</td></tr>
+            <tr><td>Employee year-to-date</td><td>Each person&rsquo;s gross / PAYE / NSSF / deductions / net across the year&rsquo;s Salary runs. Linked from every employee record.</td></tr>
+            <tr><td>vs previous run (on the run page)</td><td>What changed since the last run of the same type <em>and unit</em>, and who joined or left.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Amount formatting &amp; email</h3>
+      <p>Every amount on screen, on payslips and in the admin is shown with thousands separators
+        (<span class="mono-chip">1,621,791,500</span>). CSV exports keep plain numbers so bank and
+        statutory imports parse cleanly. Workflow emails use whatever mail server IT has configured;
+        in a test environment they are printed to the server console.</p>
+    </section>
+
+    <!-- 8 ============================================= -->
+    <section id="trouble">
+      <div class="eyebrow">When something is off</div>
+      <h2>Troubleshooting</h2>
+      <dl class="qa">
+        <div>
+          <dt>&ldquo;Mark reviewed&rdquo; is greyed out</dt>
+          <dd><span class="lab">Cause</span> One or more lines have a non-zero variance.</dd>
+          <dd><span class="lab">Fix</span> Open each flagged line from the banner, reduce the
+            oversized deduction (or fence it with effective dates), then recalculate.</dd>
+        </div>
+        <div>
+          <dt>&ldquo;Download CSV&rdquo; on the bank file is disabled</dt>
+          <dd><span class="lab">Cause</span> Some payees have a missing or malformed account number.</dd>
+          <dd><span class="lab">Fix</span> The page lists them. Correct the account (numeric, 8&ndash;20
+            digits) on each employee record, recalculate the run, and re-approve if needed.</dd>
+        </div>
+        <div>
+          <dt>I can&rsquo;t approve the run</dt>
+          <dd><span class="lab">Cause</span> Either the run is not in <em>Reviewed</em>, or you are
+            the person who reviewed it.</dd>
+          <dd><span class="lab">Fix</span> The Chief Audit Officer signs off, and must be someone
+            other than the Chief People Officer who reviewed it &mdash; segregation of duties is
+            enforced.</dd>
+        </div>
+        <div>
+          <dt>I can&rsquo;t edit or delete a run</dt>
+          <dd><span class="lab">Cause</span> It is already <em>Approved</em> or <em>Disbursed</em>.</dd>
+          <dd><span class="lab">Fix</span> Use <em>Reopen</em> (from Reviewed or Approved) to return
+            it to <em>Calculated</em>. A disbursed run is final.</dd>
+        </div>
+        <div>
+          <dt>PAYE looks wrong after a rate change</dt>
+          <dd><span class="lab">Cause</span> The run was calculated against the previous tax table.</dd>
+          <dd><span class="lab">Fix</span> Recalculate. Runs already finalised deliberately keep the
+            version they were calculated with.</dd>
+        </div>
+        <div>
+          <dt>An employee is missing from the run</dt>
+          <dd><span class="lab">Cause</span> They are not active on the pay date &mdash; the join date
+            is after it, or a leaver date is before it.</dd>
+          <dd><span class="lab">Fix</span> Correct the dates on the record and recalculate.</dd>
+        </div>
+        <div>
+          <dt>An Expense Allowance line shows a negative net</dt>
+          <dd><span class="lab">Cause</span> Recurring deductions add up to more than the allowance.</dd>
+          <dd><span class="lab">Fix</span> Lower the deduction, or set an effective-to date, or raise
+            the allowance on the record.</dd>
+        </div>
+        <div>
+          <dt>&ldquo;Email all payslips&rdquo; skipped someone</dt>
+          <dd><span class="lab">Cause</span> That person has no email address on file (or a zero net).</dd>
+          <dd><span class="lab">Fix</span> Add the address to the record, then email that one payslip
+            from its page.</dd>
+        </div>
+        <div>
+          <dt>A new joiner arrived mid-cycle</dt>
+          <dd><span class="lab">Fix</span> Add them (or bulk-onboard) with a join date on or before
+            the pay date, then recalculate the run.</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- 9 ============================================= -->
+    <section id="glossary">
+      <div class="eyebrow">Terms</div>
+      <h2>Glossary</h2>
+      <dl class="gloss">
+        <dt>Pay run</dt><dd>One cycle for one business unit for one month &mdash; a run type, a scope, a period and a pay date.</dd>
+        <dt>Run scope</dt><dd>The business unit a run covers. A run can also be group-wide (all units), but the normal practice is one run per unit.</dd>
+        <dt>Run type</dt><dd>Expense Allowance (mid-month) or Salary (month-end).</dd>
+        <dt>Line</dt><dd>One employee&rsquo;s calculated pay within a run: gross, statutory, deductions, net.</dd>
+        <dt>Variance</dt><dd>The per-line check <span class="mono">gross &minus; (net + statutory + deductions)</span>. Must be zero.</dd>
+        <dt>Chargeable income</dt><dd>The taxable part of gross that PAYE bands are applied to.</dd>
+        <dt>Statutory</dt><dd>PAYE and the employee NSSF contribution &mdash; the legally required deductions.</dd>
+        <dt>Disbursement</dt><dd>Marking a run paid; the moment loan balances are reduced.</dd>
+        <dt>Business unit</dt><dd>A Next Media entity (NBS, Sanyuka, Next Radio&hellip;). A field on the employee, not a block of rows.</dd>
+        <dt>Engagement type</dt><dd>Payroll staff, Independent contractor, or Wage staff.</dd>
+        <dt>Recurring / one-off</dt><dd>Whether an attached earning or deduction repeats every matching run or applies once.</dd>
+        <dt>Loan (deduction)</dt><dd>A deduction with an opening balance that falls each disbursement and stops at zero (Hire purchase, Fuel/Advance).</dd>
+        <dt>Effective-dated</dt><dd>A tax table or component that applies only from a given date; older runs keep the version they used.</dd>
+        <dt>Segregation of duties</dt><dd>Every step of the four-officer chain &mdash; prepare, review, approve, disburse &mdash; must be a different person from the step before it. The system enforces this.</dd>
+        <dt>Four-officer chain</dt><dd>Head of Human Capital prepares &rarr; Chief People Officer reviews &rarr; Chief Audit Officer approves &rarr; Chief Finance Officer disburses.</dd>
+        <dt>Audit trail</dt><dd>The Chief Audit Officer's read-only timeline of every create/change/delete across the system, with the acting user and a field-level diff. See &sect;6.</dd>
+        <dt>Master record</dt><dd>The single employee record every screen, run and export reads from.</dd>
+      </dl>
+    </section>
+
+    <!-- 10 ============================================= -->
+    <section id="admin">
+      <div class="eyebrow">For administrators</div>
+      <h2>Administrator appendix</h2>
+      <p>The <span class="mono-chip">Admin</span> area (Django admin, themed to match) holds the
+        configuration that everyday roles do not touch, plus a complete change history.</p>
+      <div class="table-scroll">
+        <table class="ref">
+          <thead><tr><th>Area</th><th>What you manage there</th></tr></thead>
+          <tbody>
+            <tr><td>Business units &amp; departments</td><td>The list of entities and the departments under them.</td></tr>
+            <tr><td>Earning &amp; deduction codes</td><td>Add a new code, set which run type it applies to, mark it a loan or taxable.</td></tr>
+            <tr><td>PAYE tables &amp; bands</td><td>Create a new effective-dated table when URA rates change; activate the draft FY2026/27 table.</td></tr>
+            <tr><td>NSSF configurations</td><td>The effective-dated 5% / 10% rates.</td></tr>
+            <tr><td>Users &amp; roles</td><td>Create accounts and assign a group: HR Data Entry, Head of Human Capital, Chief People Officer, Chief Audit Officer or Chief Finance Officer.</td></tr>
+            <tr><td>History</td><td>Every record shows who changed what, when, and the previous value.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout important">
+        <span class="k">Rate changes</span>
+        Never edit a live PAYE band in place. Add a <em>new</em> table with the correct
+        <span class="mono-chip">effective from</span> date &mdash; the engine picks it up for runs on
+        or after that date, and past runs stay correct.
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span class="brand"><b>Next Media</b><span class="bkt"></span></span>
+    <p>Next Media Payroll Manual · Version 1.0. Screen labels and menu paths match the shipped
+      system; if a button is missing it is a role permission, not a fault.</p>
+    <p>The PAYE and NSSF figures here summarise the tables loaded in the system for convenience. They
+      are not tax advice &mdash; the current URA and NSSF rates always govern, and an administrator
+      keeps the system&rsquo;s tables aligned with them.</p>
+  </footer>
+
+</div>
+
+<script>
+  // TOC: forced open on desktop, collapsible on mobile
+  (function () {
+    var toc = document.getElementById("toc");
+    var mq = window.matchMedia("(max-width: 900px)");
+    function apply() { if (!mq.matches) toc.open = true; else toc.open = false; }
+    apply();
+    mq.addEventListener ? mq.addEventListener("change", apply) : mq.addListener(apply);
+
+    // scrollspy
+    var links = Array.prototype.slice.call(toc.querySelectorAll("a[href^='#']"));
+    var map = {};
+    links.forEach(function (a) {
+      var el = document.getElementById(a.getAttribute("href").slice(1));
+      if (el) map[el.id] = a;
+    });
+    if (!("IntersectionObserver" in window)) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          links.forEach(function (l) { l.classList.remove("active"); });
+          if (map[e.target.id]) map[e.target.id].classList.add("active");
+        }
+      });
+    }, { rootMargin: "-15% 0px -70% 0px", threshold: 0 });
+    Object.keys(map).forEach(function (id) {
+      var s = document.getElementById(id);
+      if (s) io.observe(s);
+    });
+  })();
+</script>

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ editing|yesno:"Edit,Add" }} {{ label }} · {{ employee.full_legal_name }}{% endblock %}
+{% block crumb %}
+  <a href="{% url 'employees:list' %}">Employees</a> /
+  <a href="{% url 'employees:detail' employee.pk %}">{{ employee.staff_id }}</a> /
+  <b>{{ editing|yesno:"Edit,Add" }} {{ label }}</b>
+{% endblock %}
+{% block content %}
+
+<a class="back-link" href="{% url 'employees:detail' employee.pk %}">&larr; {{ employee.full_legal_name }}</a>
+<div class="page-head">
+  <h1>{{ editing|yesno:"Edit,Add a" }} recurring {{ label }}</h1>
+  <p class="sub">Attached to {{ employee.full_legal_name }} ({{ employee.staff_id }}). Picked up automatically on the next matching pay run.</p>
+</div>
+
+<form method="post" class="card" style="max-width:560px;">
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="banner error nonfield-errors">{{ form.non_field_errors }}</div>{% endif %}
+  <div class="form-grid">
+    {% for field in form %}
+      {% include "employees/_field.html" with field=field wide=1 %}
+    {% endfor %}
+  </div>
+  <div class="form-actions">
+    <button class="btn" type="submit">{{ editing|yesno:"Save,Add" }} {{ label }}</button>
+    <a class="btn subtle" href="{% url 'employees:detail' employee.pk %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

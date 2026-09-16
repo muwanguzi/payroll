@@ -1,0 +1,20 @@
+{% load payroll_extras %}
+{% for e in page_obj %}
+  <tr onclick="location='{% url 'employees:detail' e.pk %}'" style="cursor:pointer">
+    <td><a href="{% url 'employees:detail' e.pk %}">{{ e.staff_id }}</a></td>
+    <td>{{ e.full_legal_name }}{% if e.missing_tin %} <span class="pill warn plain" title="No TIN on file">TIN</span>{% endif %}</td>
+    <td>{{ e.business_unit.name }}</td>
+    <td>{{ e.position }}</td>
+    <td class="cell-muted">{{ e.get_engagement_type_display }}</td>
+    <td class="num">{{ e.monthly_gross_salary|money }}</td>
+    <td><span class="pill {{ e.status }}">{{ e.get_status_display }}</span></td>
+  </tr>
+{% empty %}
+  <tr><td colspan="7"><div class="empty">No matching employees.</div></td></tr>
+{% endfor %}
+{% if page_obj.has_next %}
+  <tr id="load-more" hx-get="{% url 'employees:list' %}?q={{ q|urlencode }}&unit={{ unit|urlencode }}&status={{ status|urlencode }}&page={{ page_obj.next_page_number }}"
+      hx-trigger="revealed" hx-swap="outerHTML" hx-target="#load-more">
+    <td colspan="7" class="cell-muted">Loading more…</td>
+  </tr>
+{% endif %}

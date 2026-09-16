@@ -1,0 +1,9 @@
+{# renders one bound form field: {% include "employees/_field.html" with field=form.x %} #}
+<div class="f{% if field.field.widget.input_type == 'checkbox' %} checkbox{% endif %}{% if field.errors %} has-error{% endif %}{% if wide %} wide{% endif %}">
+  <label for="{{ field.id_for_label }}">
+    {{ field.label }}{% if field.field.required %}<span class="req">*</span>{% endif %}
+  </label>
+  {{ field }}
+  {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+  {% for e in field.errors %}<span class="err">{{ e }}</span>{% endfor %}
+</div>

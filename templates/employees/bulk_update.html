@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Bulk update employees{% endblock %}
+{% block crumb %}<a href="{% url 'employees:list' %}">Employees</a> / <b>Bulk update</b>{% endblock %}
+{% block content %}
+
+<a class="back-link" href="{% url 'employees:list' %}">&larr; Employees</a>
+<div class="page-head">
+  <h1>Bulk update from a spreadsheet</h1>
+  <p class="sub">Match by <code>staff_id</code>. Only the columns present in your file are changed
+  — <code>monthly_gross_salary</code>, <code>monthly_expense_allowance</code>, <code>status</code>,
+  <code>position</code>, <code>email</code>, <code>tin</code>, <code>nssf_number</code>,
+  <code>bank_name</code>, <code>bank_account_number</code>. Nothing is written until you confirm.</p>
+</div>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data" class="toolbar">
+    {% csrf_token %}
+    <input type="file" name="file" accept=".csv,text/csv" required>
+    <button class="btn" type="submit">Preview changes</button>
+    <a class="btn subtle sm" href="?template=1" style="margin-left:auto">Download template CSV</a>
+  </form>
+</div>
+
+{% if plan %}
+  {% if plan.header_error %}
+    <div class="banner error">{{ plan.header_error }}</div>
+  {% else %}
+    {% if plan.unknown_columns %}
+      <div class="banner warning">Ignored unknown column(s): {{ plan.unknown_columns|join:", " }}</div>
+    {% endif %}
+
+    <div class="grid c4" style="margin:16px 0;">
+      <div class="stat"><div class="l">Rows in file</div><div class="n">{{ plan.rows|length }}</div></div>
+      <div class="stat good"><div class="l">Will update</div><div class="n">{{ plan.valid_rows|length }}</div>
+        <div class="f">{{ plan.field_count }} field(s)</div></div>
+      <div class="stat"><div class="l">No change</div><div class="n">{{ plan.noop_rows|length }}</div></div>
+      <div class="stat {% if plan.error_rows %}bad{% endif %}"><div class="l">Errors</div><div class="n">{{ plan.error_rows|length }}</div></div>
+    </div>
+
+    {% if plan.error_rows %}
+    <div class="banner error">
+      <strong>{{ plan.error_rows|length }} row(s) will be skipped:</strong>
+      <ul>{% for r in plan.error_rows|slice:":15" %}<li>line {{ r.line_no }} ({{ r.staff_id|default:"?" }}) — {{ r.error }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    {% if plan.valid_rows %}
+    <div class="card-head" style="margin-top:20px;"><h2>Changes to apply</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Staff ID</th><th>Employee</th><th>Field</th><th class="num">From</th><th class="num">To</th></tr></thead>
+        <tbody>
+          {% for r in plan.valid_rows %}
+            {% for field, old, new in r.changes %}
+            <tr>
+              <td>{% if forloop.first %}{{ r.staff_id }}{% endif %}</td>
+              <td>{% if forloop.first %}{{ r.employee.full_legal_name }}{% endif %}</td>
+              <td>{{ field }}</td>
+              <td class="num cell-muted">{{ old }}</td>
+              <td class="num">{{ new }}</td>
+            </tr>
+            {% endfor %}
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <form method="post" class="actions" style="margin-top:16px;">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="1">
+      <button class="btn" type="submit">Apply {{ plan.field_count }} change(s) to {{ plan.valid_rows|length }} employee(s)</button>
+      <a class="btn subtle" href="{% url 'employees:bulk_update' %}">Cancel</a>
+    </form>
+    {% else %}
+      <div class="card"><div class="empty">Nothing to change — every row already matches the master.</div></div>
+    {% endif %}
+  {% endif %}
+{% endif %}
+{% endblock %}

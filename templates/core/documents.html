@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Documents · Next Media Payroll{% endblock %}
+{% block crumb %}<b>Documents</b>{% endblock %}
+{% block content %}
+
+<div class="page-head">
+  <h1>Documents</h1>
+  <p class="sub">Reference material for running payroll. Open a document in a new tab; each one is print-ready for a PDF or a hard copy.</p>
+</div>
+
+<div class="grid c2" style="align-items:start;">
+  {% for doc in docs %}
+  <div class="card">
+    <div class="card-head">
+      <h2 style="flex:1">{{ doc.title }}</h2>
+      {% if doc.updated %}<span class="muted" style="font-size:12px;">Updated {{ doc.updated|date:"M j, Y" }}</span>{% endif %}
+    </div>
+    <p class="muted" style="margin-top:0;">{{ doc.summary }}</p>
+    {% if doc.contents %}
+    <ul style="margin:12px 0 0; padding-left:18px; font-size:13px; color:var(--ink-soft);">
+      {% for item in doc.contents %}<li style="margin:3px 0;">{{ item }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+    <div class="actions" style="margin-top:16px;">
+      <a class="btn" href="{% url 'document_view' doc.slug %}" target="_blank" rel="noopener">Open document ↗</a>
+    </div>
+    <p class="muted" style="font-size:11.5px; margin:10px 0 0;">Opens in a new tab. Use your browser’s Print to save it as a PDF.</p>
+  </div>
+  {% empty %}
+  <div class="card"><div class="empty">No documents available.</div></div>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+db.sqlite3
+media/
+staticfiles/
+data/
+.env
+cookies
+cj
+cj2
+*.output
+.DS_Store

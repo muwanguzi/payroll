@@ -1,0 +1,120 @@
+{% load payroll_extras %}
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 1.6cm; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 10pt; color: #1c2733; }
+  .slip { page-break-after: always; }
+  .slip:last-child { page-break-after: auto; }
+  h1 { font-size: 15pt; margin: 0; }
+  h2 { font-size: 10pt; margin: 14px 0 4px; text-transform: uppercase; letter-spacing: .5px; color: #5f6c7b; }
+  h3 { font-size: 9.5pt; margin: 10px 0 3px; color: #1c2733; }
+  .muted { color: #5f6c7b; }
+  .head { border-bottom: 2px solid #d73c26; padding-bottom: 6px; margin-bottom: 10px; }
+  .head img { height: 32pt; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 3px 0; }
+  td.n { text-align: right; }
+  .meta td { padding: 1px 0; }
+  .row td { border-bottom: .5pt solid #dfe4ea; }
+  .tot td { font-weight: bold; border-top: 1pt solid #1c2733; }
+  .section { border-left: 3px solid #dfe4ea; padding-left: 8px; margin-top: 8px; }
+  .net { background: #e7effb; font-size: 12pt; }
+  .net td { padding: 6px; font-weight: bold; }
+  .pending { background: #fdf4e6; border: .5pt solid #f4d9ac; padding: 8px; font-size: 9pt; }
+</style>
+</head>
+<body>
+{% for bundle in bundles %}
+<div class="slip">
+  <div class="head">
+    {% with u=unit_logos|get_item:bundle.anchor.business_unit_code %}
+      {% if u %}<img src="{{ u }}" alt="{{ bundle.anchor.business_unit_name }}">
+      {% elif logo %}<img src="{{ logo }}" alt="Next Media">
+      {% else %}<h1>NEXT MEDIA</h1>{% endif %}
+    {% endwith %}
+    <div style="font-weight:bold; font-size:11pt; margin-top:3px;">{{ bundle.anchor.business_unit_name }}</div>
+    <div class="muted">A Next Media company &middot; Plot 13, Summit View Road, P.O. Box 7613, Kampala</div>
+  </div>
+
+  <table class="meta">
+    <tr><td class="muted" style="width:35%">Payslip</td><td>{{ bundle.period_label }}</td></tr>
+    <tr><td class="muted">Employee</td><td>{{ bundle.anchor.employee_name }} ({{ bundle.anchor.staff_id }})</td></tr>
+    <tr><td class="muted">Position / Unit</td><td>{{ bundle.anchor.position }} &middot; {{ bundle.anchor.business_unit_name }}</td></tr>
+    <tr><td class="muted">Payment to</td><td>{{ bundle.anchor.bank_name }} {{ bundle.anchor.payment_reference }}</td></tr>
+    {% if bundle.salary_line.tin %}<tr><td class="muted">TIN</td><td>{{ bundle.salary_line.tin }}</td></tr>{% endif %}
+  </table>
+
+  {% if not bundle.ready %}
+    <div class="pending">This payslip is a preview only &mdash; the Salary run for this period has not
+      been marked Disbursed yet. Figures below are not final until disbursement.</div>
+  {% endif %}
+
+  {% if bundle.salary_line %}
+  <div class="section">
+    <h2>Salary &mdash; {{ bundle.salary_line.pay_run.pay_date }}</h2>
+    <h3>Earnings</h3>
+    <table>
+      {% for it in bundle.salary_line.items.all %}{% if it.item_type == 'EARNING' %}
+        <tr class="row"><td>{{ it.label }}</td><td class="n">{{ it.amount|money }}</td></tr>
+      {% endif %}{% endfor %}
+      <tr class="tot"><td>Gross pay</td><td class="n">{{ bundle.salary_line.gross_pay|money }}</td></tr>
+    </table>
+
+    <h3>Statutory deductions</h3>
+    <table>
+      <tr class="row"><td>PAYE <span class="muted">({{ bundle.salary_line.paye_band }})</span></td><td class="n">{{ bundle.salary_line.paye|money }}</td></tr>
+      <tr class="row"><td>NSSF employee (5%)</td><td class="n">{{ bundle.salary_line.nssf_employee|money }}</td></tr>
+      <tr class="tot"><td>Total statutory</td><td class="n">{{ bundle.salary_line.statutory_total|money }}</td></tr>
+    </table>
+    <div class="muted" style="font-size:8pt;">Employer NSSF (10%): {{ bundle.salary_line.nssf_employer|money }} &mdash; company cost, not deducted.</div>
+
+    <h3>Other deductions</h3>
+    <table>
+      {% for it in bundle.salary_line.items.all %}{% if it.item_type == 'DEDUCTION' %}
+        <tr class="row"><td>{{ it.label }}{% if it.balance_after != None %} <span class="muted">(bal. {{ it.balance_after|money }})</span>{% endif %}</td>
+          <td class="n">{{ it.amount|money }}</td></tr>
+      {% endif %}{% endfor %}
+      {% if not bundle.salary_line.total_deductions %}<tr class="row"><td class="muted">None</td><td class="n">0</td></tr>{% endif %}
+      <tr class="tot"><td>Total other deductions</td><td class="n">{{ bundle.salary_line.total_deductions|money }}</td></tr>
+    </table>
+    <table style="margin-top:6px;"><tr class="row"><td><b>Salary net pay</b></td><td class="n"><b>{{ bundle.salary_line.net_pay|money }}</b></td></tr></table>
+  </div>
+  {% endif %}
+
+  {% if bundle.expense_line %}
+  <div class="section">
+    <h2>Expense allowance &mdash; {{ bundle.expense_line.pay_run.pay_date }}</h2>
+    <h3>Earnings</h3>
+    <table>
+      {% for it in bundle.expense_line.items.all %}{% if it.item_type == 'EARNING' %}
+        <tr class="row"><td>{{ it.label }}</td><td class="n">{{ it.amount|money }}</td></tr>
+      {% endif %}{% endfor %}
+      <tr class="tot"><td>Gross allowance</td><td class="n">{{ bundle.expense_line.gross_pay|money }}</td></tr>
+    </table>
+
+    <h3>Other deductions</h3>
+    <table>
+      {% for it in bundle.expense_line.items.all %}{% if it.item_type == 'DEDUCTION' %}
+        <tr class="row"><td>{{ it.label }}{% if it.balance_after != None %} <span class="muted">(bal. {{ it.balance_after|money }})</span>{% endif %}</td>
+          <td class="n">{{ it.amount|money }}</td></tr>
+      {% endif %}{% endfor %}
+      {% if not bundle.expense_line.total_deductions %}<tr class="row"><td class="muted">None</td><td class="n">0</td></tr>{% endif %}
+      <tr class="tot"><td>Total other deductions</td><td class="n">{{ bundle.expense_line.total_deductions|money }}</td></tr>
+    </table>
+    <table style="margin-top:6px;"><tr class="row"><td><b>Expense allowance net pay</b></td><td class="n"><b>{{ bundle.expense_line.net_pay|money }}</b></td></tr></table>
+  </div>
+  {% endif %}
+
+  <table style="margin-top:12px;"><tr class="net"><td>TOTAL NET PAY</td><td class="n">{{ bundle.net_pay|money }} UGX</td></tr></table>
+  <div class="muted" style="font-size:8pt; margin-top:6px;">
+    Generated {% now "Y-m-d H:i" %}.
+    {% if bundle.salary_line %}Salary arithmetic check: {{ bundle.salary_line.variance|money }}.{% endif %}
+    {% if bundle.expense_line %}Expense arithmetic check: {{ bundle.expense_line.variance|money }}.{% endif %}
+  </div>
+</div>
+{% endfor %}
+</body>
+</html>

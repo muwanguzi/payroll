@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}{{ employee.full_legal_name }} · Employee{% endblock %}
+{% block crumb %}<a href="{% url 'employees:list' %}">Employees</a> / <b>{{ employee.staff_id }}</b>{% endblock %}
+{% block content %}
+
+<a class="back-link" href="{% url 'employees:list' %}">&larr; Employees</a>
+<div class="page-head" style="display:flex; align-items:flex-start; gap:16px;">
+  <div style="flex:1">
+    <h1>{{ employee.full_legal_name }}</h1>
+    <p class="sub">{{ employee.staff_id }} · {{ employee.business_unit.name }}
+      · <span class="pill {{ employee.status }}">{{ employee.get_status_display }}</span></p>
+  </div>
+  <div class="actions no-print">
+    <a class="btn ghost sm" href="{% url 'reports:employee_ytd_detail' employee.pk %}">Year-to-date</a>
+    {% if can_edit %}<a class="btn sm" href="{% url 'employees:edit' employee.pk %}">Edit</a>{% endif %}
+  </div>
+</div>
+
+<div class="grid c2" style="align-items:start;">
+  <div class="card">
+    <div class="card-head"><h2>Record</h2></div>
+    <dl class="kv">
+      <dt>National ID</dt><dd>{{ employee.national_id|default:"—" }}</dd>
+      <dt>TIN</dt><dd>{{ employee.tin|default:"—" }}{% if employee.missing_tin %} <span class="pill warn plain" title="No TIN on file — PAYE returns will file blank">Missing TIN</span>{% endif %}</dd>
+      <dt>NSSF number</dt><dd>{{ employee.nssf_number|default:"—" }}{% if employee.missing_nssf_number %} <span class="pill warn plain" title="No NSSF number on file — NSSF returns will file blank">Missing NSSF #</span>{% endif %}</dd>
+      <dt>Email</dt><dd>{{ employee.email|default:"—" }}</dd>
+      <dt>Position</dt><dd>{{ employee.position }}</dd>
+      <dt>Department</dt><dd>{{ employee.department|default:"—" }}</dd>
+      <dt>Engagement</dt><dd>{{ employee.get_engagement_type_display }}</dd>
+      <dt>Monthly gross salary</dt><dd>{{ employee.monthly_gross_salary|money }}</dd>
+      <dt>Monthly expense allowance</dt><dd>{{ employee.monthly_expense_allowance|money }}</dd>
+      <dt>Bank</dt><dd>{{ employee.bank_name|default:"—" }} {{ employee.bank_account_number }}</dd>
+      <dt>Mobile money</dt><dd>{{ employee.mobile_money_number|default:"—" }}</dd>
+      <dt>Joined</dt><dd>{{ employee.date_joined }}</dd>
+      <dt>Left</dt><dd>{{ employee.date_left|default:"—" }}</dd>
+    </dl>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <h2>Recurring components</h2>
+      {% if can_edit %}
+      <div class="actions">
+        <a class="btn subtle sm" href="{% url 'employees:component_add' employee.pk 'earning' %}">+ Earning</a>
+        <a class="btn subtle sm" href="{% url 'employees:component_add' employee.pk 'deduction' %}">+ Deduction</a>
+      </div>
+      {% endif %}
+    </div>
+    <table class="data">
+      <thead><tr><th>Type</th><th>Code</th><th class="num">Amount</th><th class="num">Balance</th><th>Status</th>{% if can_edit %}<th></th>{% endif %}</tr></thead>
+      <tbody>
+        {% for x in earnings %}
+          <tr>
+            <td class="cell-muted">Earning</td><td>{{ x.code.name }}</td>
+            <td class="num">{{ x.amount|money }}</td><td class="num">—</td>
+            <td>{% if x.is_active %}<span class="pill good plain">active</span>{% else %}<span class="pill neutral plain">stopped</span>{% endif %}</td>
+            {% if can_edit %}<td class="num" style="white-space:nowrap">
+              <a href="{% url 'employees:component_edit' employee.pk 'earning' x.pk %}">edit</a>
+              &nbsp;<a href="#" onclick="if(confirm('Remove this earning?'))this.nextElementSibling.submit();return false;">remove</a>
+              <form class="inline" method="post" action="{% url 'employees:component_delete' employee.pk 'earning' x.pk %}">{% csrf_token %}</form>
+            </td>{% endif %}
+          </tr>
+        {% endfor %}
+        {% for d in deductions %}
+          <tr>
+            <td class="cell-muted">Deduction</td><td>{{ d.code.name }}</td>
+            <td class="num">{{ d.amount|money }}</td>
+            <td class="num">{{ d.balance|default_if_none:"—"|money }}</td>
+            <td>{% if d.is_active %}<span class="pill good plain">active</span>{% else %}<span class="pill neutral plain">stopped</span>{% endif %}
+              {% if d.number_of_runs %}<span class="muted" style="font-size:11px;">{{ d.runs_applied }}/{{ d.number_of_runs }} runs</span>{% endif %}
+              {% if d.approval_status == 'PENDING' %}<span class="pill warn plain" title="Awaiting Chief Audit Officer sign-off">pending</span>
+              {% elif d.approval_status == 'REJECTED' %}<span class="pill bad plain" title="{{ d.approval_note }}">rejected</span>{% endif %}</td>
+            {% if can_edit %}<td class="num" style="white-space:nowrap">
+              <a href="{% url 'employees:component_edit' employee.pk 'deduction' d.pk %}">edit</a>
+              &nbsp;<a href="#" onclick="if(confirm('Remove this deduction?'))this.nextElementSibling.submit();return false;">remove</a>
+              <form class="inline" method="post" action="{% url 'employees:component_delete' employee.pk 'deduction' d.pk %}">{% csrf_token %}</form>
+            </td>{% endif %}
+          </tr>
+        {% endfor %}
+        {% if not earnings and not deductions %}
+          <tr><td colspan="6"><div class="empty">None attached.</div></td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card-head" style="margin-top:24px;"><h2>Recent pay lines</h2></div>
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Run</th><th class="num">Gross</th><th class="num">PAYE</th><th class="num">NSSF 5%</th>
+      <th class="num">Deductions</th><th class="num">Net</th><th></th></tr></thead>
+    <tbody>
+      {% for l in pay_lines %}
+        <tr>
+          <td>{{ l.pay_run.period_label }} — {{ l.pay_run.get_run_type_display }}</td>
+          <td class="num">{{ l.gross_pay|money }}</td>
+          <td class="num">{{ l.paye|money }}</td>
+          <td class="num">{{ l.nssf_employee|money }}</td>
+          <td class="num">{{ l.total_deductions|money }}</td>
+          <td class="num">{{ l.net_pay|money }}</td>
+          <td><a href="{% url 'payroll:payslip' l.pk %}">Payslip</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7"><div class="empty">No pay lines yet.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

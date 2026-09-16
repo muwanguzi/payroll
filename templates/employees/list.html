@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Employees · Next Media Payroll{% endblock %}
+{% block crumb %}<b>Employees</b>{% endblock %}
+{% block content %}
+
+<div class="page-head" style="display:flex; align-items:flex-start; gap:16px;">
+  <div style="flex:1">
+    <h1>Employee master</h1>
+    <p class="sub">The single source of truth — every screen, pay run and bank file reads from these records.</p>
+  </div>
+  {% if can_edit_employees %}
+  <div class="actions">
+    <a class="btn subtle sm" href="{% url 'employees:bulk_import' %}">Onboard CSV</a>
+    <a class="btn subtle sm" href="{% url 'employees:bulk_update' %}">Bulk update</a>
+    <a class="btn" href="{% url 'employees:create' %}">+ New employee</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <form hx-get="{% url 'employees:list' %}" hx-target="#emp-rows" hx-trigger="keyup changed delay:300ms from:input[name=q], change from:select"
+        hx-push-url="true" class="toolbar">
+    <input type="search" name="q" value="{{ q }}" placeholder="Name, staff ID, position…">
+    <select name="unit">
+      <option value="">All business units</option>
+      {% for bu in units %}
+        <option value="{{ bu.code }}" {% if unit == bu.code %}selected{% endif %}>{{ bu.name }}</option>
+      {% endfor %}
+    </select>
+    <select name="status">
+      <option value="">Any status</option>
+      <option value="ACTIVE" {% if status == 'ACTIVE' %}selected{% endif %}>Active</option>
+      <option value="INACTIVE" {% if status == 'INACTIVE' %}selected{% endif %}>Inactive</option>
+    </select>
+    <span class="muted" style="margin-left:auto">{{ total }} match{{ total|pluralize:"es" }}</span>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr><th>Staff ID</th><th>Name</th><th>Business unit</th><th>Position</th><th>Engagement</th>
+      <th class="num">Salary</th><th>Status</th></tr>
+    </thead>
+    <tbody id="emp-rows">
+      {% include "employees/_rows.html" %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

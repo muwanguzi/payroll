@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Pay runs · Next Media Payroll{% endblock %}
+{% block crumb %}<b>Pay runs</b>{% endblock %}
+{% block content %}
+
+<div class="page-head" style="display:flex; align-items:flex-start; gap:16px;">
+  <div style="flex:1">
+    <h1>Pay runs</h1>
+    <p class="sub">Runs are scoped to a business unit (or the whole group). Two run types per unit each
+      month — the mid-month Expense Allowance and the month-end Salary run.</p>
+  </div>
+  {% if can_prepare %}<a class="btn" href="{% url 'payroll:run_create' %}">+ New pay run</a>{% endif %}
+</div>
+
+<div class="card">
+  <form method="get" class="toolbar">
+    <label style="margin:0;">Business unit</label>
+    <select name="unit" onchange="this.form.submit()">
+      <option value="">All runs</option>
+      <option value="all" {% if unit == 'all' %}selected{% endif %}>Group-wide runs only</option>
+      {% for bu in units %}
+        <option value="{{ bu.code }}" {% if unit == bu.code %}selected{% endif %}>{{ bu.name }}</option>
+      {% endfor %}
+    </select>
+    <span class="muted" style="margin-left:auto">{{ runs|length }} run{{ runs|length|pluralize }}</span>
+  </form>
+</div>
+
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Business unit</th><th>Period</th><th>Type</th><th>Pay date</th><th>Status</th>
+      <th class="num">Lines</th><th class="num">Net total</th><th>Checks</th></tr></thead>
+    <tbody>
+      {% for run in runs %}
+        {% with t=run.totals %}
+        <tr onclick="location='{% url 'payroll:run_detail' run.pk %}'" style="cursor:pointer">
+          <td>{% if run.business_unit_id %}{{ run.business_unit.name }}{% else %}<span class="muted">All units</span>{% endif %}</td>
+          <td><a href="{% url 'payroll:run_detail' run.pk %}">{{ run.period_label }}</a></td>
+          <td>{{ run.get_run_type_display }}</td>
+          <td>{{ run.pay_date }}</td>
+          <td><span class="pill {{ run.status }}">{{ run.get_status_display }}</span></td>
+          <td class="num">{{ t.headcount|default:0 }}</td>
+          <td class="num">{{ t.net|default:0|money }}</td>
+          <td>
+            {% if run.variance_line_count %}<span class="pill bad">{{ run.variance_line_count }} variance</span>
+            {% elif t.headcount %}<span class="pill ok">balanced</span>
+            {% else %}<span class="muted">—</span>{% endif %}
+          </td>
+        </tr>
+        {% endwith %}
+      {% empty %}
+        <tr><td colspan="8"><div class="empty">No pay runs{% if unit %} for this filter{% endif %}.{% if can_prepare %} <a href="{% url 'payroll:run_create' %}">Create one</a>.{% endif %}</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

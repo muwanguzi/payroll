@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}New pay run{% endblock %}
+{% block crumb %}<a href="{% url 'payroll:run_list' %}">Pay runs</a> / <b>New</b>{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'payroll:run_list' %}">&larr; Pay runs</a>
+<div class="page-head">
+  <h1>New pay run</h1>
+  <p class="sub">Scope the run to one business unit, or create a run for every unit in one step. The
+  period title is derived from the pay date, never hand-typed.</p>
+</div>
+
+<div class="card" style="max-width:540px;">
+  <form method="post">
+    {% csrf_token %}
+    <label class="field-label">Run type</label>
+    <select name="run_type" required>
+      {% for value, label in run_types %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+    </select>
+
+    <label class="field-label">Scope</label>
+    <select name="business_unit">
+      <option value="each">Every business unit — one run each</option>
+      <option value="all">All business units — one group run</option>
+      <optgroup label="Single business unit">
+        {% for bu in units %}<option value="{{ bu.pk }}">{{ bu.name }}</option>{% endfor %}
+      </optgroup>
+    </select>
+
+    <div class="grid cols-2">
+      <div>
+        <label class="field-label">Year</label>
+        <select name="period_year">
+          {% for y in years %}<option value="{{ y }}" {% if y == this_year %}selected{% endif %}>{{ y }}</option>{% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="field-label">Month</label>
+        <select name="period_month">
+          {% for i, name in months %}<option value="{{ i }}" {% if i == this_month %}selected{% endif %}>{{ name }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <label class="field-label">Pay date (optional — defaults to the 15th / 27th)</label>
+    <input type="date" name="pay_date">
+
+    <label class="field-label">Notes</label>
+    <input type="text" name="notes" style="width:100%;">
+
+    <div class="actions" style="margin-top:16px;"><button class="btn" type="submit">Create run</button></div>
+  </form>
+</div>
+{% endblock %}

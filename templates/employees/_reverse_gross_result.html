@@ -1,0 +1,18 @@
+{% load payroll_extras %}
+{% if error %}
+  <p class="msg error" style="margin-top:8px;">{{ error }}</p>
+{% elif result %}
+  <div class="grid cols-3" style="margin-top:10px;">
+    <div class="stat"><div class="n">{{ result.gross|money }}</div><div class="l">Gross salary</div></div>
+    <div class="stat"><div class="n">{{ result.paye|money }}</div><div class="l">PAYE ({{ result.band_label }})</div></div>
+    <div class="stat"><div class="n">{{ result.nssf_employee|money }}</div><div class="l">NSSF employee 5%</div></div>
+  </div>
+  <p class="muted" style="font-size:12px; margin:6px 0 0;">
+    Net of statutory + the deductions entered: {{ result.net_of_statutory_and_deductions|money }}.
+    Assumes no additional taxable earnings beyond basic salary — check separately if this employee has any attached.
+  </p>
+  <button type="button" class="btn sm" style="margin-top:8px;"
+    onclick="document.getElementById('id_monthly_gross_salary').value='{{ result.gross }}'">
+    Use gross {{ result.gross|money }} →
+  </button>
+{% endif %}

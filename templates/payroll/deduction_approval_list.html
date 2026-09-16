@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}{{ deduction_code.name }} approvals · Next Media Payroll{% endblock %}
+{% block crumb %}<a href="{% url 'payroll:deduction_approval_index' %}">Deduction approvals</a> / <b>{{ deduction_code.name }}</b>{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'payroll:deduction_approval_index' %}">&larr; All types</a>
+
+<div class="page-head">
+  <h1>{{ deduction_code.name }} approvals</h1>
+  <p class="sub">Entries of type <b>{{ deduction_code.code }}</b> across every employee. Rejecting requires a note,
+    visible to whoever attached it.</p>
+</div>
+
+<div class="card">
+  <form method="get" class="toolbar">
+    <label style="margin:0;">Status</label>
+    <select name="status" onchange="this.form.submit()">
+      {% for key, label in status_choices %}
+        <option value="{{ key }}" {% if key == status_filter %}selected{% endif %}>{{ label }} ({{ counts|get_item:key|default:0 }})</option>
+      {% endfor %}
+    </select>
+    <span class="muted" style="margin-left:auto">{{ entries|length }} entr{{ entries|length|pluralize:"y,ies" }}</span>
+  </form>
+</div>
+
+<div class="table-wrap" style="margin-top:14px;">
+  <table class="data">
+    <thead><tr><th>Employee</th><th>Unit</th><th class="num">Amount</th><th>Apply on</th>
+      <th>Runs</th><th>Requested by</th><th>Reviewed</th><th></th></tr></thead>
+    <tbody>
+      {% for d in entries %}
+        <tr>
+          <td><a href="{% url 'employees:detail' d.employee.pk %}">{{ d.employee.full_legal_name }}</a> <span class="muted">({{ d.employee.staff_id }})</span></td>
+          <td>{{ d.employee.business_unit.name }}</td>
+          <td class="num">{{ d.amount|money }}</td>
+          <td>{{ d.get_run_scope_display }}</td>
+          <td>{% if d.number_of_runs %}{{ d.runs_applied }}/{{ d.number_of_runs }}{% else %}open-ended{% endif %}</td>
+          <td>{{ d.requested_by|default:"—" }}</td>
+          <td>
+            {% if d.approval_status == 'PENDING' %}<span class="pill warn plain">pending</span>
+            {% elif d.approval_status == 'APPROVED' %}<span class="pill good plain">approved</span> by {{ d.approval_reviewed_by }}
+            {% else %}<span class="pill bad plain">rejected</span> by {{ d.approval_reviewed_by }} — {{ d.approval_note }}{% endif %}
+          </td>
+          <td style="white-space:nowrap;">
+            {% if d.approval_status != 'APPROVED' %}
+            <form class="inline" method="post" action="{% url 'payroll:deduction_approval_action' d.pk %}">{% csrf_token %}
+              <input type="hidden" name="action" value="approve">
+              <button class="btn subtle sm" type="submit">Approve</button>
+            </form>
+            {% endif %}
+            {% if d.approval_status != 'REJECTED' %}
+            <button class="btn subtle sm" type="button" onclick="document.getElementById('reject-{{ d.pk }}').hidden = !document.getElementById('reject-{{ d.pk }}').hidden">Reject</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% if d.approval_status != 'REJECTED' %}
+        <tr id="reject-{{ d.pk }}" hidden>
+          <td colspan="8">
+            <form method="post" action="{% url 'payroll:deduction_approval_action' d.pk %}" class="actions">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="reject">
+              <input type="text" name="note" placeholder="Reason for rejecting (required)" style="flex:1" required>
+              <button class="btn danger sm" type="submit">Confirm reject</button>
+            </form>
+          </td>
+        </tr>
+        {% endif %}
+      {% empty %}
+        <tr><td colspan="8"><div class="empty">No entries in this status.</div></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
