@@ -38,6 +38,11 @@ jobs:
         id: image_name
         run: echo "name=${REGISTRY}/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
 
+      # The default `docker` buildx driver doesn't support GHA cache
+      # export/import (cache-to/cache-from below) - this switches to the
+      # docker-container driver, which does.
+      - uses: docker/setup-buildx-action@v3
+
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
