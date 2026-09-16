@@ -20,6 +20,12 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",")
 if DEBUG and "testserver" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("testserver")
+# Always allowed regardless of DJANGO_ALLOWED_HOSTS: only reachable from
+# inside the same container/host, used by the Docker healthcheck
+# (docker-compose.yml hits http://127.0.0.1:8000/login/ directly, bypassing
+# whatever public hostname is configured).
+if "127.0.0.1" not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append("127.0.0.1")
 
 CSRF_TRUSTED_ORIGINS = [
     o for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o

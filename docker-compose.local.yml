@@ -1,0 +1,25 @@
+# Standalone file for testing the image locally - NOT used with `-f` merge
+# (Traefik-style labels/external network in docker-compose.yml only make
+# sense on the VPS, and relying on newer Compose merge-override syntax for
+# a dev convenience isn't worth it). Keep the two files' `web` service
+# definitions in sync if you change one.
+#
+#   mkdir -p data media staticfiles && sudo chown -R 1000:1000 data media staticfiles
+#   cp .env.example .env   # edit DJANGO_SECRET_KEY etc.
+#   docker compose -f docker-compose.local.yml up --build
+#
+# Then http://127.0.0.1:8001/
+services:
+  web:
+    image: payroll:local
+    build: .
+    env_file:
+      - .env
+    environment:
+      DJANGO_DB_PATH: /app/data/db.sqlite3
+    volumes:
+      - ./data:/app/data
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    ports:
+      - "127.0.0.1:8001:8000"

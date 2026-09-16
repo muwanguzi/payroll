@@ -1,20 +1,25 @@
-# Local: `docker compose up --build`
-# Server: the pipeline (.github/workflows/deploy.yml) pulls IMAGE and runs
-#   `docker compose up -d` here - see deploy/README-docker.md for the
-#   one-time server setup.
+# This file is for the VPS (requires the external `proxy` Docker network
+# that only exists there). For local testing, use docker-compose.local.yml
+# instead - see that file.
 #
-# Binds only to 127.0.0.1:8001 - never exposed directly to the internet.
-# Whatever already fronts this server (Caddy/nginx, see deploy/) reverse
-# proxies to that port, same as the non-Docker deploy did.
+# Server: the pipeline pulls IMAGE and runs `docker compose up -d` here.
 #
-# Static/media/db are BIND mounts (not named volumes) at paths relative to
-# this file, deliberately matching /opt/payroll/app/{staticfiles,media,data}
-# on the server - that's exactly what the host-level Caddy/nginx config from
-# deploy/docker-provision.sh already serves directly off disk, so switching
-# to Docker doesn't require touching that config at all.
+# This server already runs Traefik (v3) in front of a large existing set of
+# other company services (project: next_services) - discovered via
+# deploy/docker-provision.sh before this was written, specifically so this
+# file wouldn't try to install its own nginx/Caddy and collide with it.
+# Traefik auto-routes to any container on the `proxy` network carrying the
+# right labels, so this app needs no host port published and no reverse-proxy
+# config of its own - joining that network + the labels below is the whole
+# integration. Verified against an existing service's labels on the VPS
+# (same network=proxy, entrypoints=websecure, certresolver=le,
+# middlewares=secure-headers@file - only the router/service name and Host
+# rule differ here).
 #
-# Testing this locally (not via deploy/docker-provision.sh, which handles
-# this on the server)? Create + chown the bind-mount dirs first, or Docker
+# Static/media/db are bind mounts at paths relative to this file
+# (/opt/payroll/app/{staticfiles,media,data} on the server).
+#
+# Testing locally? Create + chown the bind-mount dirs first, or Docker
 # creates them as root:root and the container's uid-1000 `payroll` user
 # can't write to them:
 #   mkdir -p data media staticfiles && sudo chown -R 1000:1000 data media staticfiles
@@ -31,11 +36,23 @@ services:
       - ./data:/app/data
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
-    ports:
-      - "127.0.0.1:8001:8000"
+    networks:
+      - proxy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/login/').status==200 else 1)"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 20s
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=proxy
+      - "traefik.http.routers.payroll.rule=Host(`${PAYROLL_HOST:-payroll.nextmedia.co.ug}`)"
+      - traefik.http.routers.payroll.entrypoints=websecure
+      - traefik.http.routers.payroll.tls.certresolver=le
+      - traefik.http.routers.payroll.middlewares=secure-headers@file
+      - traefik.http.services.payroll.loadbalancer.server.port=8000
+
+networks:
+  proxy:
+    external: true
