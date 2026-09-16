@@ -1,8 +1,10 @@
+import re
+
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve as serve_static
 
 admin.site.site_header = "Next Media Payroll"
 admin.site.site_title = "Next Media Payroll"
@@ -19,5 +21,18 @@ urlpatterns = [
     path("reports/", include("apps.reports.urls")),
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Deliberately NOT django.conf.urls.static.static() - that helper is a
+# no-op whenever DEBUG=False, which is exactly when this is needed: unlike
+# static/ (served by WhiteNoise, see MIDDLEWARE), there's no separate web
+# server for media in the Docker deploy (Traefik proxies straight to
+# gunicorn). Media here is a handful of business-unit logos, already
+# visible on public-facing payslips, so django.views.static.serve is an
+# acceptable amount of "not for serious production scale" for this app's
+# actual size.
+urlpatterns += [
+    re_path(
+        r"^%s(?P<path>.*)$" % re.escape(settings.MEDIA_URL.lstrip("/")),
+        serve_static,
+        {"document_root": settings.MEDIA_ROOT},
+    ),
+]

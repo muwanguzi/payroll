@@ -6,6 +6,7 @@ django-simple-history==3.13.0      # audit trail (who changed what, when, old ->
 django-unfold==0.104.1             # modern admin theme + custom dashboard
 xhtml2pdf==0.2.17                  # payslip PDF rendering (pulls reportlab, pillow, lxml, ...)
 gunicorn==23.0.0                   # production WSGI server (deploy/ scripts)
+whitenoise==6.11.0                 # serves STATIC_ROOT from gunicorn - no nginx in the Docker deploy
 
 # Dev only (screenshot smoke tests), not required to run the app:
 #   playwright==1.62.0   +  a system Chrome/Chromium

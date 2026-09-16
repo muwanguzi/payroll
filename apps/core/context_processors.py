@@ -2,9 +2,15 @@ from django.conf import settings
 
 
 def roles(request):
+    # Piggybacks a plain DEBUG flag onto this same (already-registered,
+    # every-request) processor rather than adding a second one just for
+    # one boolean - used to hide the demo-login hint on login.html outside
+    # of local dev.
+    is_debug = settings.DEBUG
+
     user = getattr(request, "user", None)
     if not user or not user.is_authenticated:
-        return {"user_roles": set()}
+        return {"user_roles": set(), "is_debug": is_debug}
 
     names = set(user.groups.values_list("name", flat=True))
     su = user.is_superuser
@@ -14,6 +20,7 @@ def roles(request):
 
     return {
         "user_roles": names,
+        "is_debug": is_debug,
         # individual roles
         "is_hr": has(settings.ROLE_HR),
         "is_hhc": has(settings.ROLE_HHC),

@@ -25,9 +25,11 @@
         {{ form.password }}
         <button class="btn" type="submit" style="width:100%; margin-top:20px;">Sign in</button>
       </form>
+      {% if is_debug %}
       <p class="muted" style="margin-top:18px; font-size:12px;">
         Demo: <code>admin</code> · <code>hr</code> · <code>hhc</code> · <code>cpo</code> · <code>cao</code> · <code>cfo</code> — password <code>payroll123</code>
       </p>
+      {% endif %}
     </div>
   </div>
 </div>
