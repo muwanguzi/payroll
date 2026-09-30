@@ -11,3 +11,10 @@ cj
 cj2
 *.output
 .DS_Store
+
+# Real staff data dropped in for one-off imports (names, salaries, TINs,
+# bank details, ...) - never commit this. Template_Payroll.xlsx is the only
+# xlsx meant to be tracked (it's the de-identified original from setup).
+/*.xlsx
+!/Template_Payroll.xlsx
+/*.csv
