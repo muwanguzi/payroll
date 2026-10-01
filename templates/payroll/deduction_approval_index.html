@@ -3,11 +3,18 @@
 {% block crumb %}<b>Deduction approvals</b>{% endblock %}
 {% block content %}
 
-<div class="page-head">
-  <h1>Deduction approvals</h1>
-  <p class="sub">Every recurring deduction type has its own review queue. Approve or reject entries
-    scoped to that type — a rejected deduction stops applying to pay runs immediately; a pending one
-    still applies until reviewed (it does not block payroll).</p>
+<div class="page-head" style="display:flex; align-items:flex-start; gap:16px;">
+  <div style="flex:1">
+    <h1>Deduction approvals</h1>
+    <p class="sub">Every recurring deduction type has its own review queue. Approve or reject entries
+      scoped to that type — a rejected deduction stops applying to pay runs immediately; a pending one
+      still applies until reviewed (it does not block payroll).</p>
+  </div>
+  {% if can_edit_employees %}
+  <div class="actions">
+    <a class="btn subtle sm" href="{% url 'payroll:deduction_bulk_import' %}">Bulk import deductions</a>
+  </div>
+  {% endif %}
 </div>
 
 <div class="table-wrap">

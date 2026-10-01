@@ -73,11 +73,11 @@
     <div class="card">
       <div class="card-head"><h2>Data-quality watch</h2></div>
       <dl class="kv">
-        <dt>Missing position</dt><dd>{{ data_quality.missing_position }}</dd>
-        <dt>No bank / mobile money</dt><dd>{{ data_quality.missing_account }}</dd>
-        <dt>Missing TIN</dt><dd>{{ data_quality.missing_tin }}</dd>
-        <dt>Missing NSSF number</dt><dd>{{ data_quality.missing_nssf_number }}</dd>
-        <dt>Leavers still marked active</dt><dd>{{ data_quality.leavers_still_active }}</dd>
+        <dt><a href="{% url 'employees:list' %}?flag=missing_position">Missing position</a></dt><dd>{{ data_quality.missing_position }}</dd>
+        <dt><a href="{% url 'employees:list' %}?flag=missing_account">No bank / mobile money</a></dt><dd>{{ data_quality.missing_account }}</dd>
+        <dt><a href="{% url 'employees:list' %}?flag=missing_tin">Missing TIN</a></dt><dd>{{ data_quality.missing_tin }}</dd>
+        <dt><a href="{% url 'employees:list' %}?flag=missing_nssf">Missing NSSF number</a></dt><dd>{{ data_quality.missing_nssf_number }}</dd>
+        <dt><a href="{% url 'employees:list' %}?flag=leavers_active">Leavers still marked active</a></dt><dd>{{ data_quality.leavers_still_active }}</dd>
       </dl>
       <p class="muted" style="margin:12px 0 0; font-size:12px;">
         Staff ID and Position are mandatory at entry; one master record removes cross-sheet name drift by construction.

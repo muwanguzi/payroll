@@ -170,6 +170,11 @@ PAYROLL_BANK_ACCT_MAX_LEN = int(os.environ.get("PAYROLL_BANK_ACCT_MAX_LEN", 20))
 # Currency used across the group workbook.
 PAYROLL_CURRENCY = "UGX"
 
+# Paying-branch address printed on the bank's own bulk-payment upload
+# format (nBOL) - Next Media's branch, not the employee's, and constant
+# across every row/business unit in the bank's template.
+PAYROLL_BANK_PAYING_ADDRESS = os.environ.get("PAYROLL_BANK_PAYING_ADDRESS", "Naguru")
+
 # Workflow e-mail notifications (Recommendation 6.9).
 PAYROLL_NOTIFY = os.environ.get("PAYROLL_NOTIFY", "1") == "1"
 SITE_BASE_URL = os.environ.get("SITE_BASE_URL", "http://127.0.0.1:8000")

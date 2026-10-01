@@ -17,4 +17,5 @@ cj2
 # xlsx meant to be tracked (it's the de-identified original from setup).
 /*.xlsx
 !/Template_Payroll.xlsx
+/*.xlsm
 /*.csv

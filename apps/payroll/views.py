@@ -1,4 +1,6 @@
+import base64
 import calendar
+import io
 from datetime import date
 
 from django.contrib import messages
@@ -13,7 +15,10 @@ from apps.core.permissions import in_role
 from apps.organization.models import BusinessUnit
 from django.conf import settings
 
-from .banking import generate_bank_file
+from .banking import generate_bank_file, generate_nbol_bank_file
+from .deduction_imports import apply_plan as apply_deduction_plan
+from .deduction_imports import build_plan as build_deduction_plan
+from .deduction_imports import template_xlsx as deduction_template_xlsx
 from .forms import PayRunEditForm
 from .models import PayRun, PayRunLine, RunStatus, RunType
 from .comparison import compare_runs
@@ -262,10 +267,13 @@ def run_bank_file(request, pk):
     if not _guard(request, run, *settings.ROLES_DISBURSE):
         return redirect("payroll:run_detail", pk=pk)
     unit = request.GET.get("unit") or None
-    result = generate_bank_file(run, business_unit_code=unit)
+    fmt = request.GET.get("format") or "generic"
+    generator = generate_nbol_bank_file if fmt == "nbol" else generate_bank_file
+    result = generator(run, business_unit_code=unit)
 
     if request.GET.get("download") == "1" and result.ok:
-        fname = f"bank-{slugify(run.get_run_type_display())}-{run.period_year}-{run.period_month:02d}"
+        prefix = "nbol" if fmt == "nbol" else "bank"
+        fname = f"{prefix}-{slugify(run.get_run_type_display())}-{run.period_year}-{run.period_month:02d}"
         if unit:
             fname += f"-{slugify(unit)}"
         resp = HttpResponse(result.csv_text, content_type="text/csv")
@@ -273,7 +281,7 @@ def run_bank_file(request, pk):
         return resp
 
     return render(request, "payroll/bank_file.html", {
-        "run": run, "result": result, "unit": unit,
+        "run": run, "result": result, "unit": unit, "fmt": fmt,
         "units": run.lines.values_list("business_unit_code", "business_unit_name").distinct(),
     })
 
@@ -391,3 +399,41 @@ def run_nssf_return(request, pk):
         messages.error(request, "NSSF returns are only available for a calculated Salary run.")
         return redirect("payroll:run_detail", pk=pk)
     return _csv_response(nssf_return_csv(run), f"nssf-return-{run.period_year}-{run.period_month:02d}.csv")
+
+
+@login_required
+def deduction_bulk_import(request):
+    if not in_role(request.user, *settings.ROLES_EMPLOYEE_EDIT):
+        messages.error(request, "Adding deductions is limited to HR and Finance.")
+        return redirect("payroll:deduction_approval_index")
+
+    if request.GET.get("template") == "1":
+        resp = HttpResponse(
+            deduction_template_xlsx(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        resp["Content-Disposition"] = 'attachment; filename="deduction-import-template.xlsx"'
+        return resp
+
+    plan = None
+    if request.method == "POST":
+        if request.POST.get("confirm") == "1":
+            raw = request.session.get("_bulk_deduction_xlsx")
+            if not raw:
+                messages.error(request, "Upload timed out — please choose the file again.")
+                return redirect("payroll:deduction_bulk_import")
+            plan = build_deduction_plan(io.BytesIO(base64.b64decode(raw)))
+            summary = apply_deduction_plan(plan)
+            request.session.pop("_bulk_deduction_xlsx", None)
+            messages.success(
+                request,
+                f"Added {summary['created']} deduction(s). {summary['skipped']} row(s) with errors were skipped.",
+            )
+            return redirect("payroll:deduction_approval_index")
+
+        if request.FILES.get("file"):
+            data = request.FILES["file"].read()
+            request.session["_bulk_deduction_xlsx"] = base64.b64encode(data).decode("ascii")
+            plan = build_deduction_plan(io.BytesIO(data))
+
+    return render(request, "payroll/deduction_bulk_import.html", {"plan": plan})

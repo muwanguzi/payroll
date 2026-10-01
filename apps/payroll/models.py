@@ -422,6 +422,7 @@ class PayRunLine(models.Model):
     business_unit_code = models.CharField(max_length=16)
     business_unit_name = models.CharField(max_length=120)
     bank_name = models.CharField(max_length=120, blank=True)
+    bank_sort_code = models.CharField(max_length=20, blank=True)
     payment_reference = models.CharField(max_length=40, blank=True)
     account_valid = models.BooleanField(default=True)
     email = models.EmailField(blank=True)

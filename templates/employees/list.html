@@ -17,9 +17,18 @@
   {% endif %}
 </div>
 
+{% if flag_label %}
+<div class="msg warning" style="display:flex; align-items:center; gap:10px;">
+  <span>Data-quality filter: <strong>{{ flag_label }}</strong></span>
+  <a class="btn subtle sm" style="margin-left:auto"
+     href="{% url 'employees:list' %}?q={{ q }}&unit={{ unit }}&status={{ status }}">Clear filter</a>
+</div>
+{% endif %}
+
 <div class="card">
   <form hx-get="{% url 'employees:list' %}" hx-target="#emp-rows" hx-trigger="keyup changed delay:300ms from:input[name=q], change from:select"
         hx-push-url="true" class="toolbar">
+    <input type="hidden" name="flag" value="{{ flag }}">
     <input type="search" name="q" value="{{ q }}" placeholder="Name, staff ID, position…">
     <select name="unit">
       <option value="">All business units</option>

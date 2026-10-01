@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load payroll_extras %}
+{% block title %}Bulk import deductions{% endblock %}
+{% block crumb %}<a href="{% url 'payroll:deduction_approval_index' %}">Deduction approvals</a> / <b>Bulk import</b>{% endblock %}
+{% block content %}
+
+<a class="back-link" href="{% url 'payroll:deduction_approval_index' %}">&larr; Deduction approvals</a>
+<div class="page-head">
+  <h1>Add deductions from a spreadsheet</h1>
+  <p class="sub">Required columns: <code>staff_id</code>, <code>deduction_code</code>, <code>amount</code>.
+  Optional: <code>run_scope</code>, <code>recurrence</code>, <code>opening_balance</code> (required for
+  loan-type codes), <code>number_of_runs</code>, <code>effective_from</code>, <code>effective_to</code>,
+  <code>note</code>. Every row is validated the same way the on-screen form is. This always ADDS a new
+  deduction — it never edits an existing one, so re-uploading the same row twice creates two deductions.
+  Nothing is created until you confirm.</p>
+</div>
+
+<div class="card">
+  <form method="post" enctype="multipart/form-data" class="toolbar">
+    {% csrf_token %}
+    <input type="file" name="file" accept=".xlsx" required>
+    <button class="btn" type="submit">Preview</button>
+    <a class="btn subtle sm" href="?template=1" style="margin-left:auto">Download Excel template</a>
+  </form>
+</div>
+
+{% if plan %}
+  {% if plan.header_error %}
+    <div class="banner error">{{ plan.header_error }}</div>
+  {% else %}
+    <div class="grid c3" style="margin:16px 0;">
+      <div class="stat"><div class="l">Rows in file</div><div class="n">{{ plan.rows|length }}</div></div>
+      <div class="stat good"><div class="l">Will add</div><div class="n">{{ plan.valid_rows|length }}</div></div>
+      <div class="stat {% if plan.error_rows %}bad{% endif %}"><div class="l">Errors</div><div class="n">{{ plan.error_rows|length }}</div></div>
+    </div>
+
+    {% if plan.error_rows %}
+    <div class="banner error">
+      <strong>{{ plan.error_rows|length }} row(s) will be skipped:</strong>
+      <ul>{% for r in plan.error_rows|slice:":20" %}<li>line {{ r.line_no }} ({{ r.staff_id|default:"?" }} / {{ r.code|default:"?" }}) — {{ r.error }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+
+    {% if plan.valid_rows %}
+    <div class="card-head" style="margin-top:20px;"><h2>New deductions</h2></div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Staff ID</th><th>Employee</th><th>Code</th><th class="num">Amount</th><th>Apply on</th><th>Recurrence</th><th class="num">Opening balance</th></tr></thead>
+        <tbody>
+          {% for r in plan.valid_rows %}
+          <tr>
+            <td>{{ r.instance.employee.staff_id }}</td>
+            <td>{{ r.instance.employee.full_legal_name }}</td>
+            <td>{{ r.instance.code.code }}</td>
+            <td class="num">{{ r.instance.amount|money }}</td>
+            <td>{{ r.instance.get_run_scope_display }}</td>
+            <td>{{ r.instance.get_recurrence_display }}</td>
+            <td class="num">{% if r.instance.opening_balance %}{{ r.instance.opening_balance|money }}{% else %}—{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <form method="post" class="actions" style="margin-top:16px;">
+      {% csrf_token %}
+      <input type="hidden" name="confirm" value="1">
+      <button class="btn" type="submit">Add {{ plan.valid_rows|length }} deduction(s)</button>
+      <a class="btn subtle" href="{% url 'payroll:deduction_bulk_import' %}">Cancel</a>
+    </form>
+    {% else %}
+      <div class="card"><div class="empty">No valid rows to add.</div></div>
+    {% endif %}
+  {% endif %}
+{% endif %}
+{% endblock %}

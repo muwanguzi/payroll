@@ -60,6 +60,7 @@ def calculate_run(pay_run: PayRun, actor=None) -> PayRun:
             business_unit_code=emp.business_unit.code,
             business_unit_name=emp.business_unit.name,
             bank_name=emp.bank_name,
+            bank_sort_code=emp.bank_branch_code,
             payment_reference=emp.payment_reference,
             account_valid=emp.has_valid_account and bool(emp.payment_reference),
             email=emp.email,

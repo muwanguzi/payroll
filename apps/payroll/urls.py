@@ -5,6 +5,7 @@ from . import deduction_approvals, views
 app_name = "payroll"
 
 urlpatterns = [
+    path("deductions/bulk-import/", views.deduction_bulk_import, name="deduction_bulk_import"),
     path("deductions/approvals/", deduction_approvals.deduction_approval_index, name="deduction_approval_index"),
     path("deductions/approvals/<str:code>/", deduction_approvals.deduction_approval_list, name="deduction_approval_list"),
     path("deductions/<int:pk>/review/", deduction_approvals.deduction_approval_action, name="deduction_approval_action"),

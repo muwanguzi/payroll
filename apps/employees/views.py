@@ -27,7 +27,24 @@ from .imports import (
     create_template_csv,
     template_csv,
 )
-from .models import Employee
+from .models import Employee, EmployeeStatus
+
+# Data-quality watch filters (dashboard cards link here via ?flag=<key>).
+DQ_FLAG_FILTERS = {
+    "missing_position": Q(position=""),
+    "missing_account": Q(bank_account_number="", mobile_money_number=""),
+    "missing_tin": Q(tin=""),
+    "missing_nssf": Q(nssf_number=""),
+    "leavers_active": Q(status=EmployeeStatus.ACTIVE, date_left__isnull=False),
+}
+
+DQ_FLAG_LABELS = {
+    "missing_position": "Missing position",
+    "missing_account": "No bank / mobile money",
+    "missing_tin": "Missing TIN",
+    "missing_nssf": "Missing NSSF number",
+    "leavers_active": "Leavers still marked active",
+}
 
 
 def _can_edit(user):
@@ -47,6 +64,7 @@ def employee_list(request):
     q = request.GET.get("q", "").strip()
     unit = request.GET.get("unit", "").strip()
     status = request.GET.get("status", "").strip()
+    flag = request.GET.get("flag", "").strip()
     if q:
         qs = qs.filter(
             Q(full_legal_name__icontains=q) | Q(staff_id__icontains=q) | Q(position__icontains=q)
@@ -55,6 +73,8 @@ def employee_list(request):
         qs = qs.filter(business_unit__code=unit)
     if status:
         qs = qs.filter(status=status)
+    if flag in DQ_FLAG_FILTERS:
+        qs = qs.filter(DQ_FLAG_FILTERS[flag])
 
     page = Paginator(qs, 50).get_page(request.GET.get("page"))
     context = {
@@ -62,6 +82,8 @@ def employee_list(request):
         "q": q,
         "unit": unit,
         "status": status,
+        "flag": flag,
+        "flag_label": DQ_FLAG_LABELS.get(flag),
         "total": qs.count(),
         "units": BusinessUnit.objects.filter(is_active=True),
     }

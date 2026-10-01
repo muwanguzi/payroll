@@ -426,6 +426,8 @@ input[type="search"] { min-width: 260px; }
 /* ---------- misc ---------- */
 .kv { display: grid; grid-template-columns: 190px 1fr; gap: 9px 18px; font-size: 13.5px; }
 .kv dt { color: var(--ink-faint); }
+.kv dt a { text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); text-underline-offset: 2px; }
+.kv dt a:hover { text-decoration-color: var(--accent); }
 .kv dd { margin: 0; color: var(--ink); }
 .muted { color: var(--ink-faint); }
 .right { text-align: right; }

@@ -18,9 +18,14 @@
         <option value="{{ code }}" {% if unit == code %}selected{% endif %}>{{ name }}</option>
       {% endfor %}
     </select>
+    <label style="margin:0;">Format</label>
+    <select name="format" onchange="this.form.submit()">
+      <option value="generic" {% if fmt == "generic" %}selected{% endif %}>Generic CSV</option>
+      <option value="nbol" {% if fmt == "nbol" %}selected{% endif %}>Bank upload format (nBOL)</option>
+    </select>
     <span class="muted">{{ result.row_count }} payable row{{ result.row_count|pluralize }} · total {{ result.total|money }} UGX</span>
     {% if result.ok %}
-      <a class="btn" href="?download=1{% if unit %}&unit={{ unit }}{% endif %}">Download CSV</a>
+      <a class="btn" href="?download=1&format={{ fmt }}{% if unit %}&unit={{ unit }}{% endif %}">Download CSV</a>
     {% else %}
       <button class="btn" disabled title="Resolve the errors below first">Download CSV</button>
     {% endif %}
